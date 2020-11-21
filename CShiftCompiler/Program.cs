@@ -26,7 +26,7 @@ namespace CShiftCompiler
             char[] Punctuators = { ';', ',', ':', '.', '(', ')', '{', '}', '[', ']' };
 
             //Reading input files
-            var reader = new StreamReader(Application.StartupPath + @"\Input\input.txt");
+            var reader = new StreamReader(Application.StartupPath + @"\Input\input1.txt");
             var cr = reader.ReadToEnd().ToCharArray();
 
             //Reading 
@@ -71,26 +71,24 @@ namespace CShiftCompiler
                     }
                 }
                 //Add if the token exists
-                if (pointer < cr.Length)
+                if (pointer < cr.Count())
                 {
                     Temp.Add(cr[pointer]);
+                    pointer++;
                     //check if the next poiners exists or not: if not break the loop
                     if (pointer + 1 < cr.Count())
                     {
-                        pointer++;
                         //Adding the last inverted comma
                         if (cr[pointer] == '"') Temp.Add(cr[pointer]);
                     }
                     else break;
-                    
                 }
-                else break;
+               
 
             } while (cr[pointer] != '"' && cr[pointer] != '\n' );//Break Conditions - \n(New Line), ", end of file
             tokens.Add(Temp.Empty());
             return pointer;
         }
-
         private static int ValidateCharacter(List<string> tokens, char[] cr, int pointer)
         {
             //Adding First quotation
