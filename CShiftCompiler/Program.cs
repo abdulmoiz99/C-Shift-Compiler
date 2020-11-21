@@ -29,136 +29,87 @@ namespace CShiftCompiler
             var temp = string.Empty;
 
             //Reading input files
-            var reader = new StreamReader(Application.StartupPath + @"\Input\input1.txt");
-            // string testString = "ksdk sdlsdsdd";
-            //var cr = testString.ToCharArray();
+            var reader = new StreamReader(Application.StartupPath + @"\Input\input.txt");
             var cr = reader.ReadToEnd().ToCharArray();
 
             //Reading 
             for (int i = 0; i < cr.Count(); i++)
             {
                 //FOR STRING
-                // Start Conditions - "
                 if (cr[i] == '"')
                 {
-                    do // For appending first inverted comma
-                    {
-                        // Include Conditions ("\") - increment for the next character
-                        if (cr[i] == '\\')
-                        {
-                            if (i + 1 < cr.Length) // condition might be wrong: string.IsNullOrEmpty(cr[i + 1].ToString())
-                            {
-                                Temp.Add(cr[i++]);
-                            }
-                            else
-                            {
-                                tokens.Add(Temp.Empty());
-                                break;
-                            }
-                        }
-                        Temp.Add(cr[i]);
-
-                        //Adding the last inverted comma
-                        if (i + 1 < cr.Length)
-                        {
-                            i++;
-                            if (cr[i] == '"') Temp.Add(cr[i]);
-                        }
-
-                    } while (cr[i] != '"' && i < cr.Count() - 1 && cr[i] != '\n');//Break Conditions - \n(New Line), ", end of file
-                    tokens.Add(Temp.Empty());
+                    i = ValidateString(tokens, cr, i);
                 }
                 //FOR CHARACTERS
-                if (cr[i] == '\'') // checke if the character is '
+                else if (cr[i] == '\'') // check if the character is '
                 {
-                    Temp.Add(cr[i]);
-                    int charCount = 0;
-                    if (i + 1 < cr.Length)
-                    {
-                        if (cr[i + 1] == '\\') charCount = 3;
-                        else charCount = 2;
-
-                        for (int readChar = 0; readChar < charCount; readChar++)
-                        {
-                            if (i + 1 < cr.Length && cr[i + 1] != '\n') Temp.Add(cr[++i]);
-                            else break;
-                        }
-                    }
-                    tokens.Add(Temp.Empty());
+                    i = ValidateCharacter(tokens, cr, i);
                 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                //    Temp.Add(cr[i]);
-                //    i++;
-                //    while (cr[i] != '"' && i < cr.Count() - 1)
-                //    {
-                //        if (cr[i] == '\\') //Single Slash ('\')
-                //        {
-                //            Temp.Add(cr[i]);
-                //            i++;
-                //            Temp.Add(cr[i]);
-                //        }
-                //        else if (cr[i] == '\n')
-                //        {
-                //            tokens.Add(Temp.Empty());
-                //            break;
-                //        }
-                //        else 
-                //        {
-                //            Temp.Add(cr[i]);
-                //        }
-                //        i++;
-                //    }
-                //    if (cr[i] == '"' || cr[i] == '\\') 
-                //    {
-                //        Temp.Add(cr[i]);
-                //    }
-                //    tokens.Add(Temp.Empty());
-                //}
-                //else if (cr[i] == '\'')
-                //{
-
-                //}
-                //else
-                //{
-
-                //}
             }
+
+            //To display words
             foreach (var item in tokens)
             {
                 Console.WriteLine(item);
             }
             Console.ReadKey();
+        }
+
+        private static int ValidateString(List<string> tokens, char[] cr, int pointer)
+        {
+            // Start Conditions - "
+            do // For appending first inverted comma
+            {
+                // Include Conditions ("\") - increment for the next character
+                if (cr[pointer] == '\\')
+                {
+                    if (pointer + 1 < cr.Length) // condition might be wrong: string.IsNullOrEmpty(cr[i + 1].ToString())
+                    {
+                        Temp.Add(cr[pointer++]);
+                    }
+                    else
+                    {
+                        tokens.Add(Temp.Empty());
+                        break;
+                    }
+                }
+                Temp.Add(cr[pointer]);
+
+                //Adding the last inverted comma
+                if (pointer + 1 < cr.Length)
+                {
+                    pointer++;
+                    if (cr[pointer] == '"') Temp.Add(cr[pointer]);
+                }
+
+            } while (cr[pointer] != '"' && pointer < cr.Count() - 1 && cr[pointer] != '\n');//Break Conditions - \n(New Line), ", end of file
+            tokens.Add(Temp.Empty());
+            return pointer;
+        }
+
+        private static int ValidateCharacter(List<string> tokens, char[] cr, int pointer)
+        {
+            //Adding First quotation
+            Temp.Add(cr[pointer]);
+            int charCount = 0;
+            //check if the next index is available or not
+            if (pointer + 1 < cr.Length)
+            {
+                //check if the next index is '\'(Slash) or not
+                //if slash is there take 3 characters otherwise take 2 characters
+                if (cr[pointer + 1] == '\\') charCount = 3;
+                else charCount = 2;
+                //Loop to read 2 or 3 characters
+                for (int readChar = 0; readChar < charCount; readChar++)
+                {
+                    //check if the next index is avaiable also there should be no newline character
+                    if (pointer + 1 < cr.Length && cr[pointer + 1] != '\n') Temp.Add(cr[++pointer]);
+                    else break;
+                }
+            }
+            //create a token 
+            tokens.Add(Temp.Empty());
+            return pointer;
         }
     }
 }
