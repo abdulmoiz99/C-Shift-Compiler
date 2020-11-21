@@ -23,10 +23,7 @@ namespace CShiftCompiler
             //tokens list
             List<string> tokens = new List<string>();
 
-            //
             char[] Punctuators = { ';', ',', ':', '.', '(', ')', '{', '}', '[', ']' };
-
-            var temp = string.Empty;
 
             //Reading input files
             var reader = new StreamReader(Application.StartupPath + @"\Input\input.txt");
@@ -73,16 +70,23 @@ namespace CShiftCompiler
                         break;
                     }
                 }
-                Temp.Add(cr[pointer]);
-
-                //Adding the last inverted comma
-                if (pointer + 1 < cr.Length)
+                //Add if the token exists
+                if (pointer < cr.Length)
                 {
-                    pointer++;
-                    if (cr[pointer] == '"') Temp.Add(cr[pointer]);
+                    Temp.Add(cr[pointer]);
+                    //check if the next poiners exists or not: if not break the loop
+                    if (pointer + 1 < cr.Count())
+                    {
+                        pointer++;
+                        //Adding the last inverted comma
+                        if (cr[pointer] == '"') Temp.Add(cr[pointer]);
+                    }
+                    else break;
+                    
                 }
+                else break;
 
-            } while (cr[pointer] != '"' && pointer < cr.Count() - 1 && cr[pointer] != '\n');//Break Conditions - \n(New Line), ", end of file
+            } while (cr[pointer] != '"' && cr[pointer] != '\n' );//Break Conditions - \n(New Line), ", end of file
             tokens.Add(Temp.Empty());
             return pointer;
         }
