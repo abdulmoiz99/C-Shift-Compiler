@@ -46,7 +46,7 @@ namespace CShiftCompiler
                         // Include Conditions ("\") - increment for the next character
                         if (cr[i] == '\\')
                         {
-                            if (!string.IsNullOrEmpty(cr[i + 1].ToString()))
+                            if (i + 1 < cr.Length) // condition might be wrong: string.IsNullOrEmpty(cr[i + 1].ToString())
                             {
                                 Temp.Add(cr[i++]);
                             }
@@ -56,19 +56,35 @@ namespace CShiftCompiler
                                 break;
                             }
                         }
-
-                        Temp.Add(cr[i++]);
+                        Temp.Add(cr[i]);
 
                         //Adding the last inverted comma
-                        if (cr[i] == '"') Temp.Add(cr[i]);
+                        if (i + 1 < cr.Length)
+                        {
+                            i++;
+                            if (cr[i] == '"') Temp.Add(cr[i]);
+                        }
 
                     } while (cr[i] != '"' && i < cr.Count() - 1 && cr[i] != '\n');//Break Conditions - \n(New Line), ", end of file
                     tokens.Add(Temp.Empty());
                 }
                 //FOR CHARACTERS
-
                 if (cr[i] == '\'') // checke if the character is '
                 {
+                    Temp.Add(cr[i]);
+                    int charCount = 0;
+                    if (i + 1 < cr.Length)
+                    {
+                        if (cr[i + 1] == '\\') charCount = 3;
+                        else charCount = 2;
+
+                        for (int readChar = 0; readChar < charCount; readChar++)
+                        {
+                            if (i + 1 < cr.Length && cr[i + 1] != '\n') Temp.Add(cr[++i]);
+                            else break;
+                        }
+                    }
+                    tokens.Add(Temp.Empty());
                 }
 
 
