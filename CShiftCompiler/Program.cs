@@ -30,9 +30,9 @@ namespace CShiftCompiler
 
             //Reading input files
             var reader = new StreamReader(Application.StartupPath + @"\input.txt");
-            string testString = "\"asdasdasdasdasd\n";
-            var cr = testString.ToCharArray();
-            //var cr = reader.ReadToEnd().ToCharArray();
+            //string testString = @"ksdksdlsdsdd";
+            //var cr = testString.ToCharArray();
+            var cr = reader.ReadToEnd().ToCharArray();
 
             //Reading 
             for (int i = 0; i < cr.Count(); i++)
@@ -41,15 +41,27 @@ namespace CShiftCompiler
                 {
                     Temp.Add(cr[i]);
                     i++;
-                    while (cr[i] != '"' )
+                    while (cr[i] != '"' && i < cr.Count() - 1)
                     {
-
-                        i++;
-                        if (cr[i] == '\n' ||i < cr.Count() - 1)
+                        if (cr[i] == '\\') //Single Slash ('\')
+                        {
+                            Temp.Add(cr[i]);
+                            i++;
+                            Temp.Add(cr[i]);
+                        }
+                        else if (cr[i] == '\n')
                         {
                             tokens.Add(Temp.Empty());
                             break;
                         }
+                        else 
+                        {
+                            Temp.Add(cr[i]);
+                        }
+                        i++;
+                    }
+                    if (cr[i] == '"' || cr[i] == '\\') 
+                    {
                         Temp.Add(cr[i]);
                     }
                     tokens.Add(Temp.Empty());
