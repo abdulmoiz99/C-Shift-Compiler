@@ -18,10 +18,11 @@ namespace CShiftCompiler
         //Application.Run(new Form1());
         static void Main()
         {
+            
             //tokens list
             List<string> tokens = new List<string>();
 
-            char[] Punctuators = { ';', ',', ':', '.', '(', ')', '{', '}', '[', ']' };
+            char[] punctuators = { ';', ',', ':', '(', ')', '{', '}', '[', ']' }; //Dot Excluded
 
             //Reading input files
             var reader = new StreamReader(Application.StartupPath + @"\Input\input1.txt");
@@ -40,6 +41,37 @@ namespace CShiftCompiler
                 {
                     i = ValidateCharacter(tokens, cr, i);
                 }
+                //FOR SINGLE LINE COMMENTS
+                else if (cr[i] == '/' && i + 1 < cr.Length && cr[i + 1] == '/')
+                {
+                    while (cr[i] != '\n' && i + 1 < cr.Length)
+                    {
+                        i++;
+                    }
+                }
+                //FOR MULTI LINE COMMENTS                     Invalid Lexeme expected?
+                else if (cr[i] == '/' && i + 1 < cr.Length && cr[i + 1] == '*' && i + 2 < cr.Length)
+                {
+                    i += 2;
+
+                    while (cr[i] != '*' && i + 1 < cr.Length && cr[i + 1] != '/')
+                    {
+                        i++;
+                    }
+                }
+                //FOR SPACE
+                else if (cr[i] == ' ')
+                {
+                    if (Temp.Length() > 0) tokens.Add(Temp.Empty());
+                    if (i + 1 < cr.Length) i++;
+                }
+                //FOR PUNCTUATORS
+                else if (punctuators.Contains(cr[i]))
+                {
+                    if (Temp.Length() > 0) tokens.Add(Temp.Empty()); //Check
+                    tokens.Add(cr[i].ToString());
+                    if (i + 1 < cr.Length) i++;                   
+                }            
             }
 
             //To display words
