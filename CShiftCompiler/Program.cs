@@ -16,8 +16,6 @@ namespace CShiftCompiler
         //Application.EnableVisualStyles();
         //Application.SetCompatibleTextRenderingDefault(false);
         //Application.Run(new Form1());
-
-
         static void Main()
         {
             //tokens list
@@ -70,20 +68,15 @@ namespace CShiftCompiler
                         break;
                     }
                 }
-                //Add if the token exists
-                if (pointer < cr.Count())
+                Temp.Add(cr[pointer]);
+                //check if the next poiners exists or not: if not break the loop
+                if (pointer + 1 < cr.Length)
                 {
-                    Temp.Add(cr[pointer]);
                     pointer++;
-                    //check if the next poiners exists or not: if not break the loop
-                    if (pointer + 1 < cr.Count())
-                    {
-                        //Adding the last inverted comma
-                        if (cr[pointer] == '"') Temp.Add(cr[pointer]);
-                    }
-                    else break;
+                    //Adding the last inverted comma
+                    if (cr[pointer] == '"') Temp.Add(cr[pointer]);
                 }
-               
+                else break;
 
             } while (cr[pointer] != '"' && cr[pointer] != '\n' );//Break Conditions - \n(New Line), ", end of file
             tokens.Add(Temp.Empty());
