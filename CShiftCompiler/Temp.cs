@@ -23,6 +23,11 @@ namespace CShiftCompiler
             return value;
         }
 
+        static public string GetValue() 
+        {
+            return temp;
+        }
+
         static public int Length() 
         {
             return temp.Length;

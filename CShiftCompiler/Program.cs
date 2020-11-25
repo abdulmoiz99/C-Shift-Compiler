@@ -17,12 +17,13 @@ namespace CShiftCompiler
         //Application.SetCompatibleTextRenderingDefault(false);
         //Application.Run(new Form1());
         static void Main()
-        {
-            
+        { 
             //tokens list
             List<string> tokens = new List<string>();
 
             char[] punctuators = { ';', ',', ':', '(', ')', '{', '}', '[', ']' }; //Dot Excluded
+            char[] operators = { '+', '-', '/', '*', '%', '=', '!', '<', '>', '&', '|' };
+            string[] doubleOperators = { "++", "--", "!=", "==", "<=", ">=", "*=", "-=", "+=", "/=", "%=", "&&", "||" };
 
             //Reading input files
             var reader = new StreamReader(Application.StartupPath + @"\Input\input1.txt");
@@ -37,7 +38,7 @@ namespace CShiftCompiler
                     i = ValidateString(tokens, cr, i);
                 }
                 //FOR CHARACTERS
-                else if (cr[i] == '\'') // check if the character is '
+                else if (cr[i] == '\'')
                 {
                     i = ValidateCharacter(tokens, cr, i);
                 }
@@ -49,7 +50,7 @@ namespace CShiftCompiler
                         i++;
                     }
                 }
-                //FOR MULTI LINE COMMENTS                     Invalid Lexeme expected?
+                //FOR MULTI LINE COMMENTS                   
                 else if (cr[i] == '/' && i + 1 < cr.Length && cr[i + 1] == '*' && i + 2 < cr.Length)
                 {
                     i += 2;
@@ -63,15 +64,62 @@ namespace CShiftCompiler
                 else if (cr[i] == ' ')
                 {
                     if (Temp.Length() > 0) tokens.Add(Temp.Empty());
-                    if (i + 1 < cr.Length) i++;
+                }
+                //FOR LINEBREAK
+                else if (cr[i] == '\n')
+                {
+                    if (Temp.Length() > 0) tokens.Add(Temp.Empty());
                 }
                 //FOR PUNCTUATORS
                 else if (punctuators.Contains(cr[i]))
                 {
                     if (Temp.Length() > 0) tokens.Add(Temp.Empty()); //Check
                     tokens.Add(cr[i].ToString());
-                    if (i + 1 < cr.Length) i++;                   
-                }            
+                    //if (i + 1 < cr.Length) i++;
+                }
+                else if (Char.IsLetterOrDigit(cr[i]) || cr[i] == '_')
+                {
+                    Temp.Add(cr[i]);
+                }
+                //FOR OPERATORS
+                else if (operators.Contains(cr[i]))
+                {
+                    if (Temp.Length() > 0) tokens.Add(Temp.Empty());
+                    Temp.Add(cr[i]);
+
+                    if (i + 1 < cr.Length)
+                    {
+                        string temp = cr[i].ToString() + cr[i + 1].ToString();
+                        if (doubleOperators.Contains(temp))
+                        {
+                            Temp.Add(cr[++i]);
+                        }
+                    }
+                    tokens.Add(Temp.Empty());
+                }
+                //FOR DOT
+                else if (cr[i] == '.')
+                {
+                    if (Temp.Length() == 0 || IsDigitsOnly(Temp.GetValue()))
+                    {
+                        
+                        if (Char.IsDigit(cr[i + 1]))
+                        {
+                            Temp.Add(cr[i++]);
+                            Temp.Add(cr[i]);
+                        }
+                        else 
+                        {
+                            if (Temp.Length() > 0) tokens.Add(Temp.Empty());
+                            tokens.Add(cr[i].ToString());                           
+                        }
+                    }
+                    else
+                    {
+                        tokens.Add(Temp.Empty());
+                        i--;
+                    }
+                }                
             }
 
             //To display words
@@ -137,6 +185,17 @@ namespace CShiftCompiler
             //create a token 
             tokens.Add(Temp.Empty());
             return pointer;
+        }
+
+        static bool IsDigitsOnly(string str)
+        {
+            foreach (char c in str)
+            {
+                if (c < '0' || c > '9')
+                    return false;
+            }
+
+            return true;
         }
     }
 }
