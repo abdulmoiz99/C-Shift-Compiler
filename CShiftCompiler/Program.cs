@@ -26,7 +26,7 @@ namespace CShiftCompiler
             string[] doubleOperators = { "++", "--", "!=", "==", "<=", ">=", "*=", "-=", "+=", "/=", "%=", "&&", "||" };
 
             //Reading input files
-            var reader = new StreamReader(Application.StartupPath + @"\Input\input1.txt");
+            var reader = new StreamReader(Application.StartupPath + @"\Input\input2.txt");
             var cr = reader.ReadToEnd().ToCharArray();
 
             //Reading 
@@ -35,16 +35,19 @@ namespace CShiftCompiler
                 //FOR STRING
                 if (cr[i] == '"')
                 {
+                    if (Temp.Length() > 0) tokens.Add(Temp.Empty());
                     i = ValidateString(tokens, cr, i);
                 }
                 //FOR CHARACTERS
                 else if (cr[i] == '\'')
                 {
+                    if (Temp.Length() > 0) tokens.Add(Temp.Empty());
                     i = ValidateCharacter(tokens, cr, i);
                 }
                 //FOR SINGLE LINE COMMENTS
                 else if (cr[i] == '/' && i + 1 < cr.Length && cr[i + 1] == '/')
                 {
+                    if (Temp.Length() > 0) tokens.Add(Temp.Empty());
                     while (cr[i] != '\n' && i + 1 < cr.Length)
                     {
                         i++;
@@ -53,6 +56,7 @@ namespace CShiftCompiler
                 //FOR MULTI LINE COMMENTS                   
                 else if (cr[i] == '/' && i + 1 < cr.Length && cr[i + 1] == '*' && i + 2 < cr.Length)
                 {
+                    if (Temp.Length() > 0) tokens.Add(Temp.Empty());
                     i += 2;
 
                     while (cr[i] != '*' && i + 1 < cr.Length && cr[i + 1] != '/')
@@ -60,13 +64,8 @@ namespace CShiftCompiler
                         i++;
                     }
                 }
-                //FOR SPACE
-                else if (cr[i] == ' ')
-                {
-                    if (Temp.Length() > 0) tokens.Add(Temp.Empty());
-                }
-                //FOR LINEBREAK
-                else if (cr[i] == '\n')
+                //FOR LINEBREAK OR SPACE
+                else if (cr[i] == '\n' || cr[i] == ' ')
                 {
                     if (Temp.Length() > 0) tokens.Add(Temp.Empty());
                 }
@@ -119,8 +118,11 @@ namespace CShiftCompiler
                         tokens.Add(Temp.Empty());
                         i--;
                     }
-                }                
+                }   
             }
+
+            //EMPTY TEMP AFTER ENDOFFILE
+            if (Temp.Length() > 0) tokens.Add(Temp.Empty());
 
             //To display words
             foreach (var item in tokens)
