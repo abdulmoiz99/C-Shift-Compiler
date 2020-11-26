@@ -22,7 +22,7 @@ namespace CShiftCompiler
 
         static void Main()
         {
-            List<Token> tokens = GenerateTokens(Application.StartupPath + @"\Input\input3.txt");
+            List<Token> tokens = GenerateTokens(Application.StartupPath + @"\Input\input2.txt");
 
             //To display words
             foreach (var token in tokens)
@@ -105,9 +105,11 @@ namespace CShiftCompiler
                     {
                         i += 2;
 
-                        while (cr[i] != '*' && i + 1 < cr.Length && cr[i + 1] != '/') //Wrong
+                        while (cr[i] != '*' || cr[i + 1] != '/')
                         {
-                            i++;
+                            if (i + 1 < cr.Length) i++;
+                            else break;
+
                             if (cr[i] == '\n') lineCounter++;
                         }
                         i++;
