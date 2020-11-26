@@ -18,7 +18,7 @@ namespace CShiftCompiler
         //Application.Run(new Form1());
         static void Main()
         {
-            List<string> tokens = GenerateTokens(Application.StartupPath + @"\Input\input2.txt");
+            List<string> tokens = GenerateTokens(Application.StartupPath + @"\Input\input3.txt");
 
             //To display words
             foreach (var item in tokens)
@@ -26,6 +26,12 @@ namespace CShiftCompiler
                 Console.WriteLine(item);
             }
             Console.ReadKey();
+        }
+
+        private struct token 
+        {
+            private string valuePart;
+            private int lineNumber;
         }
 
         private static List<string> GenerateTokens(string inputFile)
@@ -40,6 +46,9 @@ namespace CShiftCompiler
             //Reading input files
             var reader = new StreamReader(inputFile);
             var cr = reader.ReadToEnd().ToCharArray();
+
+            //Initializing lineCounter;
+            int lineCounter = 1;
 
             //Reading 
             for (int i = 0; i < cr.Count(); i++)
@@ -94,6 +103,7 @@ namespace CShiftCompiler
                         {
                             i++;
                         }
+                        lineCounter++;
                     }
                     //FOR MULTI LINE COMMENTS                   
                     else if (cr[i] == '/' && i + 1 < cr.Length && cr[i + 1] == '*' && i + 2 < cr.Length)
@@ -102,12 +112,13 @@ namespace CShiftCompiler
 
                         while (cr[i] != '*' && i + 1 < cr.Length && cr[i + 1] != '/')
                         {
-                            i++;
+                            i++;                           
                         }
                     }
                     //FOR LINEBREAK OR SPACE
-                    else if (cr[i] == '\n' || cr[i] == ' ')
+                    else if (cr[i] == '\n' || cr[i] == ' ' || cr[i] == '\r')
                     {
+                        //if (cr[i] == '\n') lineCounter++;
                         //Ignore
                     }
                     //FOR PUNCTUATORS

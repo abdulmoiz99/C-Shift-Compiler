@@ -30,7 +30,8 @@ namespace CShiftCompiler
 
         static public int Length() 
         {
-            return temp.Length;
+            if (temp == null) return 0;
+            else return temp.Length;
         }
        
     }
