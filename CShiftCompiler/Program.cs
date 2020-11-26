@@ -17,7 +17,19 @@ namespace CShiftCompiler
         //Application.SetCompatibleTextRenderingDefault(false);
         //Application.Run(new Form1());
         static void Main()
-        { 
+        {
+            List<string> tokens = GenerateTokens(Application.StartupPath + @"\Input\input2.txt");
+
+            //To display words
+            foreach (var item in tokens)
+            {
+                Console.WriteLine(item);
+            }
+            Console.ReadKey();
+        }
+
+        private static List<string> GenerateTokens(string inputFile)
+        {
             //tokens list
             List<string> tokens = new List<string>();
 
@@ -26,91 +38,32 @@ namespace CShiftCompiler
             string[] doubleOperators = { "++", "--", "!=", "==", "<=", ">=", "*=", "-=", "+=", "/=", "%=", "&&", "||" };
 
             //Reading input files
-            var reader = new StreamReader(Application.StartupPath + @"\Input\input2.txt");
+            var reader = new StreamReader(inputFile);
             var cr = reader.ReadToEnd().ToCharArray();
 
             //Reading 
             for (int i = 0; i < cr.Count(); i++)
             {
-                //FOR STRING
-                if (cr[i] == '"')
-                {
-                    if (Temp.Length() > 0) tokens.Add(Temp.Empty());
-                    i = ValidateString(tokens, cr, i);
-                }
-                //FOR CHARACTERS
-                else if (cr[i] == '\'')
-                {
-                    if (Temp.Length() > 0) tokens.Add(Temp.Empty());
-                    i = ValidateCharacter(tokens, cr, i);
-                }
-                //FOR SINGLE LINE COMMENTS
-                else if (cr[i] == '/' && i + 1 < cr.Length && cr[i + 1] == '/')
-                {
-                    if (Temp.Length() > 0) tokens.Add(Temp.Empty());
-                    while (cr[i] != '\n' && i + 1 < cr.Length)
-                    {
-                        i++;
-                    }
-                }
-                //FOR MULTI LINE COMMENTS                   
-                else if (cr[i] == '/' && i + 1 < cr.Length && cr[i + 1] == '*' && i + 2 < cr.Length)
-                {
-                    if (Temp.Length() > 0) tokens.Add(Temp.Empty());
-                    i += 2;
-
-                    while (cr[i] != '*' && i + 1 < cr.Length && cr[i + 1] != '/')
-                    {
-                        i++;
-                    }
-                }
-                //FOR LINEBREAK OR SPACE
-                else if (cr[i] == '\n' || cr[i] == ' ')
-                {
-                    if (Temp.Length() > 0) tokens.Add(Temp.Empty());
-                }
-                //FOR PUNCTUATORS
-                else if (punctuators.Contains(cr[i]))
-                {
-                    if (Temp.Length() > 0) tokens.Add(Temp.Empty()); //Check
-                    tokens.Add(cr[i].ToString());
-                    //if (i + 1 < cr.Length) i++;
-                }
-                else if (Char.IsLetterOrDigit(cr[i]) || cr[i] == '_')
+                //FOR ALPHABET, DIGIT AND UNDERSCORE
+                if (Char.IsLetterOrDigit(cr[i]) || cr[i] == '_')
                 {
                     Temp.Add(cr[i]);
                 }
-                //FOR OPERATORS
-                else if (operators.Contains(cr[i]))
-                {
-                    if (Temp.Length() > 0) tokens.Add(Temp.Empty());
-                    Temp.Add(cr[i]);
 
-                    if (i + 1 < cr.Length)
-                    {
-                        string temp = cr[i].ToString() + cr[i + 1].ToString();
-                        if (doubleOperators.Contains(temp))
-                        {
-                            Temp.Add(cr[++i]);
-                        }
-                    }
-                    tokens.Add(Temp.Empty());
-                }
                 //FOR DOT
                 else if (cr[i] == '.')
                 {
                     if (Temp.Length() == 0 || IsDigitsOnly(Temp.GetValue()))
                     {
-                        
                         if (Char.IsDigit(cr[i + 1]))
                         {
                             Temp.Add(cr[i++]);
                             Temp.Add(cr[i]);
                         }
-                        else 
+                        else
                         {
                             if (Temp.Length() > 0) tokens.Add(Temp.Empty());
-                            tokens.Add(cr[i].ToString());                           
+                            tokens.Add(cr[i].ToString());
                         }
                     }
                     else
@@ -118,18 +71,77 @@ namespace CShiftCompiler
                         tokens.Add(Temp.Empty());
                         i--;
                     }
-                }   
+                }
+
+                else
+                {
+                    if (Temp.Length() > 0) tokens.Add(Temp.Empty());
+
+                    //FOR STRING
+                    if (cr[i] == '"')
+                    {
+                        i = ValidateString(tokens, cr, i);
+                    }
+                    //FOR CHARACTERS
+                    else if (cr[i] == '\'')
+                    {
+                        i = ValidateCharacter(tokens, cr, i);
+                    }
+                    //FOR SINGLE LINE COMMENTS
+                    else if (cr[i] == '/' && i + 1 < cr.Length && cr[i + 1] == '/')
+                    {
+                        while (cr[i] != '\n' && i + 1 < cr.Length)
+                        {
+                            i++;
+                        }
+                    }
+                    //FOR MULTI LINE COMMENTS                   
+                    else if (cr[i] == '/' && i + 1 < cr.Length && cr[i + 1] == '*' && i + 2 < cr.Length)
+                    {
+                        i += 2;
+
+                        while (cr[i] != '*' && i + 1 < cr.Length && cr[i + 1] != '/')
+                        {
+                            i++;
+                        }
+                    }
+                    //FOR LINEBREAK OR SPACE
+                    else if (cr[i] == '\n' || cr[i] == ' ')
+                    {
+                        //Ignore
+                    }
+                    //FOR PUNCTUATORS
+                    else if (punctuators.Contains(cr[i]))
+                    {
+                        tokens.Add(cr[i].ToString());
+                    }
+                    //FOR OPERATORS
+                    else if (operators.Contains(cr[i]))
+                    {
+                        Temp.Add(cr[i]);
+
+                        if (i + 1 < cr.Length)
+                        {
+                            string temp = cr[i].ToString() + cr[i + 1].ToString();
+                            if (doubleOperators.Contains(temp))
+                            {
+                                Temp.Add(cr[++i]);
+                            }
+                        }
+                        tokens.Add(Temp.Empty());
+                    }
+                    //FOR UNKNOWN CHARACTERS
+                    else 
+                    {
+                        Temp.Add(cr[i]);
+                    }
+                }
             }
 
             //EMPTY TEMP AFTER ENDOFFILE
             if (Temp.Length() > 0) tokens.Add(Temp.Empty());
 
-            //To display words
-            foreach (var item in tokens)
-            {
-                Console.WriteLine(item);
-            }
-            Console.ReadKey();
+            return tokens;
         }
 
         private static int ValidateString(List<string> tokens, char[] cr, int pointer)
