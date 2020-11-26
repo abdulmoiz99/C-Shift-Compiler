@@ -16,8 +16,15 @@ namespace CShiftCompiler
         //Application.EnableVisualStyles();
         //Application.SetCompatibleTextRenderingDefault(false);
         //Application.Run(new Form1());
+
+        //Initializing lineCounter;
+        static int lineCounter = 1;
+
         static void Main()
         {
+            //Tokens tokens = new Tokens();
+
+
             List<string> tokens = GenerateTokens(Application.StartupPath + @"\Input\input3.txt");
 
             //To display words
@@ -26,12 +33,6 @@ namespace CShiftCompiler
                 Console.WriteLine(item);
             }
             Console.ReadKey();
-        }
-
-        private struct token 
-        {
-            private string valuePart;
-            private int lineNumber;
         }
 
         private static List<string> GenerateTokens(string inputFile)
@@ -46,9 +47,6 @@ namespace CShiftCompiler
             //Reading input files
             var reader = new StreamReader(inputFile);
             var cr = reader.ReadToEnd().ToCharArray();
-
-            //Initializing lineCounter;
-            int lineCounter = 1;
 
             //Reading 
             for (int i = 0; i < cr.Count(); i++)
@@ -103,7 +101,7 @@ namespace CShiftCompiler
                         {
                             i++;
                         }
-                        lineCounter++;
+                        if (cr[i] == '\n') lineCounter++;
                     }
                     //FOR MULTI LINE COMMENTS                   
                     else if (cr[i] == '/' && i + 1 < cr.Length && cr[i + 1] == '*' && i + 2 < cr.Length)
@@ -112,13 +110,14 @@ namespace CShiftCompiler
 
                         while (cr[i] != '*' && i + 1 < cr.Length && cr[i + 1] != '/')
                         {
-                            i++;                           
+                            i++;
+                            if (cr[i] == '\n') lineCounter++;
                         }
                     }
                     //FOR LINEBREAK OR SPACE
                     else if (cr[i] == '\n' || cr[i] == ' ' || cr[i] == '\r')
                     {
-                        //if (cr[i] == '\n') lineCounter++;
+                        if (cr[i] == '\n') lineCounter++;
                         //Ignore
                     }
                     //FOR PUNCTUATORS
@@ -184,6 +183,7 @@ namespace CShiftCompiler
                 else break;
 
             } while (cr[pointer] != '"' && cr[pointer] != '\n' );//Break Conditions - \n(New Line), ", end of file
+            if (cr[pointer] == '\n') lineCounter++;
             tokens.Add(Temp.Empty());
             return pointer;
         }
@@ -207,7 +207,8 @@ namespace CShiftCompiler
                     else break;
                 }
             }
-            //create a token 
+            //create a token
+            if (cr[pointer] == '\n') lineCounter++;
             tokens.Add(Temp.Empty());
             return pointer;
         }
