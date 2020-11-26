@@ -22,23 +22,20 @@ namespace CShiftCompiler
 
         static void Main()
         {
-            //Tokens tokens = new Tokens();
-
-
-            List<string> tokens = GenerateTokens(Application.StartupPath + @"\Input\input3.txt");
+            List<Token> tokens = GenerateTokens(Application.StartupPath + @"\Input\input3.txt");
 
             //To display words
-            foreach (var item in tokens)
+            foreach (var token in tokens)
             {
-                Console.WriteLine(item);
+                Console.WriteLine("\t" + token.GetLineNo() + "\t" + token.GetValue());
             }
             Console.ReadKey();
         }
 
-        private static List<string> GenerateTokens(string inputFile)
+        private static List<Token> GenerateTokens(string inputFile)
         {
             //tokens list
-            List<string> tokens = new List<string>();
+            List<Token> tokens = new List<Token>();
 
             char[] punctuators = { ';', ',', ':', '(', ')', '{', '}', '[', ']' }; //Dot Excluded
             char[] operators = { '+', '-', '/', '*', '%', '=', '!', '<', '>', '&', '|' };
@@ -68,21 +65,21 @@ namespace CShiftCompiler
                             Temp.Add(cr[i]);
                         }
                         else
-                        {
-                            if (Temp.Length() > 0) tokens.Add(Temp.Empty());
-                            tokens.Add(cr[i].ToString());
+                        {                          
+                            if (Temp.Length() > 0) tokens.Add(new Token(lineCounter, Temp.Empty()));
+                            tokens.Add(new Token(lineCounter, cr[i].ToString()));
                         }
                     }
                     else
                     {
-                        tokens.Add(Temp.Empty());
+                        tokens.Add(new Token(lineCounter, Temp.Empty()));
                         i--;
                     }
                 }
 
                 else
                 {
-                    if (Temp.Length() > 0) tokens.Add(Temp.Empty());
+                    if (Temp.Length() > 0) tokens.Add(new Token(lineCounter, Temp.Empty()));
 
                     //FOR STRING
                     if (cr[i] == '"')
@@ -108,11 +105,12 @@ namespace CShiftCompiler
                     {
                         i += 2;
 
-                        while (cr[i] != '*' && i + 1 < cr.Length && cr[i + 1] != '/')
+                        while (cr[i] != '*' && i + 1 < cr.Length && cr[i + 1] != '/') //Wrong
                         {
                             i++;
                             if (cr[i] == '\n') lineCounter++;
                         }
+                        i++;
                     }
                     //FOR LINEBREAK OR SPACE
                     else if (cr[i] == '\n' || cr[i] == ' ' || cr[i] == '\r')
@@ -123,7 +121,7 @@ namespace CShiftCompiler
                     //FOR PUNCTUATORS
                     else if (punctuators.Contains(cr[i]))
                     {
-                        tokens.Add(cr[i].ToString());
+                        tokens.Add(new Token(lineCounter, cr[i].ToString()));
                     }
                     //FOR OPERATORS
                     else if (operators.Contains(cr[i]))
@@ -138,7 +136,7 @@ namespace CShiftCompiler
                                 Temp.Add(cr[++i]);
                             }
                         }
-                        tokens.Add(Temp.Empty());
+                        tokens.Add(new Token(lineCounter, Temp.Empty()));
                     }
                     //FOR UNKNOWN CHARACTERS
                     else 
@@ -149,12 +147,12 @@ namespace CShiftCompiler
             }
 
             //EMPTY TEMP AFTER ENDOFFILE
-            if (Temp.Length() > 0) tokens.Add(Temp.Empty());
+            if (Temp.Length() > 0) tokens.Add(new Token(lineCounter, Temp.Empty()));
 
             return tokens;
         }
 
-        private static int ValidateString(List<string> tokens, char[] cr, int pointer)
+        private static int ValidateString(List<Token> tokens, char[] cr, int pointer)
         {
             // Start Conditions - "
             do // For appending first inverted comma
@@ -168,7 +166,7 @@ namespace CShiftCompiler
                     }
                     else
                     {
-                        tokens.Add(Temp.Empty());
+                        tokens.Add(new Token(lineCounter, Temp.Empty()));
                         break;
                     }
                 }
@@ -183,11 +181,12 @@ namespace CShiftCompiler
                 else break;
 
             } while (cr[pointer] != '"' && cr[pointer] != '\n' );//Break Conditions - \n(New Line), ", end of file
+            
+            tokens.Add(new Token(lineCounter, Temp.Empty()));
             if (cr[pointer] == '\n') lineCounter++;
-            tokens.Add(Temp.Empty());
             return pointer;
         }
-        private static int ValidateCharacter(List<string> tokens, char[] cr, int pointer)
+        private static int ValidateCharacter(List<Token> tokens, char[] cr, int pointer)
         {
             //Adding First quotation
             Temp.Add(cr[pointer]);
@@ -208,8 +207,8 @@ namespace CShiftCompiler
                 }
             }
             //create a token
+            tokens.Add(new Token(lineCounter, Temp.Empty()));
             if (cr[pointer] == '\n') lineCounter++;
-            tokens.Add(Temp.Empty());
             return pointer;
         }
 
