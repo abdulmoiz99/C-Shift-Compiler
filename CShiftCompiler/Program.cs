@@ -24,6 +24,14 @@ namespace CShiftCompiler
         {
             List<Token> tokens = GenerateTokens(Application.StartupPath + @"\Input\input2.txt");
 
+            foreach (Token token in tokens) 
+            {
+                switch (token.GetValue()) 
+                {
+
+                }
+            }
+
             //To display words
             foreach (var token in tokens)
             {
