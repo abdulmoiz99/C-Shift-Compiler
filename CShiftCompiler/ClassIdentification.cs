@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace CShiftCompiler
@@ -110,27 +111,27 @@ namespace CShiftCompiler
 
         public static bool IsIdentifier(string value) 
         {
-            return false;
+            return Regex.IsMatch(value, @"^[a-zA-Z_]\w*$");
         }
 
         public static bool IsStringConstant(string value)
         {
-            return false;
+            return Regex.IsMatch(value, "^\".*\"$");
         }
 
         public static bool IsFloatConstant(string value)
         {
-            return false;
+            return Regex.IsMatch(value, @"^[+-]?\d*[.]\d+$");
         }
-
+        
         public static bool IsIntConstant(string value)
         {
-            return false;
+            return Regex.IsMatch(value, @"^[+-]?\d+$");
         }
 
         public static bool IsCharConstant(string value)
         {
-            return false;
+            return Regex.IsMatch(value, @"^'[\\]?.'$");
         }
     }
 }

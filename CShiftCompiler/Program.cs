@@ -19,63 +19,44 @@ namespace CShiftCompiler
         //Application.Run(new Form1());
 
         //Initializing lineCounter;
-
-        static int lineCounter = 1;
-        static private string IsAlphabet(string value)
-        {
-            if (Regex.IsMatch(value, "[a-z]", RegexOptions.IgnoreCase))
-            {
-                return value;
-            }
-            else return string.Empty;
-        }
-        static private string IsIdentifier(string value)
-        {
-            if (Regex.IsMatch(value, "[A-Z a-z 0-9_]*", RegexOptions.IgnoreCase))
-            {
-                return value;
-            }
-            else return string.Empty;
-        }
+        static int lineCounter = 1;        
 
         static void Main()
         {
-         //   List<Token> tokens = GenerateTokens(Application.StartupPath + @"\Input\input2.txt");
-            Console.WriteLine(ClassIdentification.IsKeyword("junaid"));
-            //foreach (Token token in tokens)
-            //{
+            List<Token> tokens = GenerateTokens(Application.StartupPath + @"\Input\input2.txt");
 
-            //    //Is Identifier // a123123123123
-            //    if (true)
-            //    {
-            //        //Is keyword
-            //        //Else Identifier
-            //    }
-            //    //string const
-            //    else if (true)
-            //    {
+            foreach (Token token in tokens)
+            {
+                if (1 ==2)
+                {
+                    //Is keyword
+                    //Else Identifier
+                }
+                //string const
+                else if (true)
+                {
 
-            //    }
-            //    //char const
-            //    else if (true)
-            //    {
+                }
+                //char const
+                else if (true)
+                {
 
-            //    }
-            //    //int
-            //    else if (true)
-            //    {
+                }
+                //int
+                else if (true)
+                {
 
-            //    }
-            //    //float const
-            //    else if (true)
-            //    {
-            //    }
-            //}
-            ////To display words
-            //foreach (var token in tokens)
-            //{
-            //    Console.WriteLine("\t" + token.GetLineNo() + "\t" + token.GetValue());
-            //}
+                }
+                //float const
+                else if (true)
+                {
+                }
+            }
+            //To display words
+            foreach (var token in tokens)
+            {
+                Console.WriteLine("\t" + token.GetLineNo() + "\t" + token.GetValue());
+            }
             Console.ReadKey();
         }
 
