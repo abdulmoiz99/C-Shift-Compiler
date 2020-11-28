@@ -23,41 +23,68 @@ namespace CShiftCompiler
 
         static void Main()
         {
-            List<Token> tokens = GenerateTokens(Application.StartupPath + @"\Input\input2.txt");
+            List<Token> tokens = GenerateTokens(Application.StartupPath + @"\Input\input3.txt");
 
             foreach (Token token in tokens)
             {
-                if (1 ==2)
-                {
-                    //Is keyword
-                    //Else Identifier
-                }
-                //string const
-                else if (true)
-                {
-
-                }
-                //char const
-                else if (true)
-                {
-
-                }
-                //int
-                else if (true)
-                {
-
-                }
-                //float const
-                else if (true)
-                {
-                }
+                IdentifyClass(token);
             }
             //To display words
             foreach (var token in tokens)
             {
-                Console.WriteLine("\t" + token.GetLineNo() + "\t" + token.GetValue());
+                Console.WriteLine(" (" + token.GetLineNo() + ", " + token.GetClass() + ", " + token.GetValue() + ")");
             }
             Console.ReadKey();
+        }
+
+        private static void IdentifyClass(Token token)
+        {
+            if (ClassIdentification.IsIdentifier(token.GetValue()))
+            {
+                string classPart = ClassIdentification.IsKeyword(token.GetValue());
+
+                if (classPart == String.Empty)
+                {
+                    token.SetClass("ID");
+                }
+                else
+                {
+                    token.SetClass(classPart);
+                }
+            }
+            //operator
+            else if (ClassIdentification.IsOperator(token.GetValue()) != String.Empty)
+            {
+                token.SetClass(ClassIdentification.IsOperator(token.GetValue()));
+            }
+            //string const
+            else if (ClassIdentification.IsStringConstant(token.GetValue()))
+            {
+                token.SetClass("string-constant");
+            }
+            //char const
+            else if (ClassIdentification.IsCharConstant(token.GetValue()))
+            {
+                token.SetClass("char-constant");
+            }
+            //int
+            else if (ClassIdentification.IsIntConstant(token.GetValue()))
+            {
+                token.SetClass("int-constant");
+            }
+            //float const
+            else if (ClassIdentification.IsFloatConstant(token.GetValue()))
+            {
+                token.SetClass("float-constant");
+            }
+            else if (ClassIdentification.IsPunctuator(token.GetValue()))
+            {
+                token.SetClass(token.GetValue());
+            }
+            else
+            {
+                token.SetClass("Invalid Lexeme");
+            }
         }
 
         private static List<Token> GenerateTokens(string inputFile)
