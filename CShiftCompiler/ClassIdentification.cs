@@ -32,6 +32,7 @@ namespace CShiftCompiler
                 //Jump
                 {"jump", new List<string>() {"jump"} },
                 {"skip-stop", new List<string>() {"skip", "stop"} },
+                {"return", new List<string>() {"return"} },
 
                 //Exception Handling
                 {"toss", new List<string>() {"toss"} },
@@ -56,7 +57,7 @@ namespace CShiftCompiler
                 //Helper
                 {"in", new List<string>() {"in"} },
                 {"new", new List<string>() {"new"} },
-                {"ref", new List<string>() {"ref"} },
+                {"ref", new List<string>() {"ref"} }
             };
 
             foreach (string classPart in keywords.Keys)
@@ -89,7 +90,7 @@ namespace CShiftCompiler
 
                 //Assignment
                 {"=", new List<string>() {"="} },
-                {"Compound Assignment", new List<string>() {"+=", "-=", "/=", "*="} },
+                {"Compound Assignment", new List<string>() {"+=", "-=", "/=", "*="} }
             };
 
             foreach (string classPart in operators.Keys)

@@ -10,35 +10,38 @@ namespace CShiftCompiler
 {
     static class Program
     {
-        /// <summary>
-        /// The main entry point for the application.
-        /// </summary>
-        //[STAThread]
-        //Application.EnableVisualStyles();
-        //Application.SetCompatibleTextRenderingDefault(false);
-        //Application.Run(new Form1());
-
         //Initializing lineCounter;
         static int lineCounter = 1;        
 
         static void Main()
         {
-            List<Token> tokens = GenerateTokens(Application.StartupPath + @"\Input\input3.txt");
+            List<Token> tokens = GenerateTokens(Application.StartupPath + @"\Input\input2.txt");
 
             foreach (Token token in tokens)
             {
                 IdentifyClass(token);
             }
-            //To display words
-            foreach (var token in tokens)
-            {
-                Console.WriteLine(" (" + token.GetLineNo() + ", " + token.GetClass() + ", " + token.GetValue() + ")");
-            }
+
+            SaveTokens(tokens);
+
             Console.ReadKey();
+        }
+
+        private static void SaveTokens(List<Token> tokens) 
+        {
+            using (StreamWriter sw = new StreamWriter(Application.StartupPath + "\\tokens.txt", false)) 
+            {
+                foreach (var token in tokens)
+                {
+                    Console.WriteLine("(" + token.GetClass() + ", " + token.GetValue() + ", " + token.GetLineNo() + ")");
+                    sw.WriteLine("(" + token.GetClass() + ", " + token.GetValue() + ", " + token.GetLineNo() + ")");
+                }
+            }
         }
 
         private static void IdentifyClass(Token token)
         {
+            //identifier or keyword
             if (ClassIdentification.IsIdentifier(token.GetValue()))
             {
                 string classPart = ClassIdentification.IsKeyword(token.GetValue());
@@ -61,11 +64,13 @@ namespace CShiftCompiler
             else if (ClassIdentification.IsStringConstant(token.GetValue()))
             {
                 token.SetClass("string-constant");
+                token.SetValue(token.GetValue().Replace("\"",""));
             }
             //char const
             else if (ClassIdentification.IsCharConstant(token.GetValue()))
             {
                 token.SetClass("char-constant");
+                token.SetValue(token.GetValue().Replace("'", ""));
             }
             //int
             else if (ClassIdentification.IsIntConstant(token.GetValue()))
@@ -77,10 +82,12 @@ namespace CShiftCompiler
             {
                 token.SetClass("float-constant");
             }
+            //punctuator
             else if (ClassIdentification.IsPunctuator(token.GetValue()))
             {
                 token.SetClass(token.GetValue());
             }
+            //invalid lexeme
             else
             {
                 token.SetClass("Invalid Lexeme");
@@ -239,8 +246,12 @@ namespace CShiftCompiler
 
             } while (cr[pointer] != '"' && cr[pointer] != '\n');//Break Conditions - \n(New Line), ", end of file
 
-            tokens.Add(new Token(lineCounter, Temp.Empty()));
-            if (cr[pointer] == '\n') lineCounter++;
+            if (cr[pointer] == '\n')
+            {
+                Temp.RemoveCarriageReturn(); //Testing Required
+                tokens.Add(new Token(lineCounter++, Temp.Empty()));
+            }
+            else tokens.Add(new Token(lineCounter, Temp.Empty()));
             return pointer;
         }
         private static int ValidateCharacter(List<Token> tokens, char[] cr, int pointer)
@@ -264,6 +275,7 @@ namespace CShiftCompiler
                 }
             }
             //create a token
+            if (cr[pointer + 1] == '\n') Temp.RemoveCarriageReturn(); //Testing Required
             tokens.Add(new Token(lineCounter, Temp.Empty()));
             if (cr[pointer] == '\n') lineCounter++;
             return pointer;

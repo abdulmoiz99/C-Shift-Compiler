@@ -50,6 +50,11 @@ namespace CShiftCompiler
             this.classPart = classPart;
         }
 
+        public void SetValue(string valuePart)
+        {
+            this.valuePart = valuePart;
+        }
+
         public string GetClass()
         {
             return classPart;

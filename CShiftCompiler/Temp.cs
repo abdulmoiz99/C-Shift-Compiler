@@ -15,6 +15,12 @@ namespace CShiftCompiler
         {
             temp += c;
         }
+
+        static public void RemoveCarriageReturn() 
+        {
+            temp = temp.TrimEnd('\r');
+        }
+
         static public string Empty()
         {
             string value = temp;
