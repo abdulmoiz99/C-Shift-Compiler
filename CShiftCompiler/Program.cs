@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -18,26 +19,64 @@ namespace CShiftCompiler
         //Application.Run(new Form1());
 
         //Initializing lineCounter;
+
         static int lineCounter = 1;
+        static private string IsAlphabet(string value)
+        {
+            if (Regex.IsMatch(value, "[a-z]", RegexOptions.IgnoreCase))
+            {
+                return value;
+            }
+            else return string.Empty;
+        }
+        static private string IsIdentifier(string value)
+        {
+            if (Regex.IsMatch(value, "[A-Z a-z 0-9_]*", RegexOptions.IgnoreCase))
+            {
+                return value;
+            }
+            else return string.Empty;
+        }
 
         static void Main()
         {
-            List<Token> tokens = GenerateTokens(Application.StartupPath + @"\Input\input2.txt");
+         //   List<Token> tokens = GenerateTokens(Application.StartupPath + @"\Input\input2.txt");
+            Console.WriteLine(IsIdentifier("12314"));
+            //foreach (Token token in tokens)
+            //{
 
-            foreach (Token token in tokens) 
-            {
-                switch (token.GetValue()) 
-                {
+            //    //Is Identifier // a123123123123
+            //    if (true)
+            //    {
+            //        //Is keyword
+            //        //Else Identifier
+            //    }
+            //    //string const
+            //    else if (true)
+            //    {
 
-                }
-            }
+            //    }
+            //    //char const
+            //    else if (true)
+            //    {
 
-            //To display words
-            foreach (var token in tokens)
-            {
-                Console.WriteLine("\t" + token.GetLineNo() + "\t" + token.GetValue());
-            }
-            Console.ReadKey();
+            //    }
+            //    //int
+            //    else if (true)
+            //    {
+
+            //    }
+            //    //float const
+            //    else if (true)
+            //    {
+            //    }
+            //}
+            ////To display words
+            //foreach (var token in tokens)
+            //{
+            //    Console.WriteLine("\t" + token.GetLineNo() + "\t" + token.GetValue());
+            //}
+            //Console.ReadKey();
         }
 
         private static List<Token> GenerateTokens(string inputFile)
@@ -73,7 +112,7 @@ namespace CShiftCompiler
                             Temp.Add(cr[i]);
                         }
                         else
-                        {                          
+                        {
                             if (Temp.Length() > 0) tokens.Add(new Token(lineCounter, Temp.Empty()));
                             tokens.Add(new Token(lineCounter, cr[i].ToString()));
                         }
@@ -149,7 +188,7 @@ namespace CShiftCompiler
                         tokens.Add(new Token(lineCounter, Temp.Empty()));
                     }
                     //FOR UNKNOWN CHARACTERS
-                    else 
+                    else
                     {
                         Temp.Add(cr[i]);
                     }
@@ -190,8 +229,8 @@ namespace CShiftCompiler
                 }
                 else break;
 
-            } while (cr[pointer] != '"' && cr[pointer] != '\n' );//Break Conditions - \n(New Line), ", end of file
-            
+            } while (cr[pointer] != '"' && cr[pointer] != '\n');//Break Conditions - \n(New Line), ", end of file
+
             tokens.Add(new Token(lineCounter, Temp.Empty()));
             if (cr[pointer] == '\n') lineCounter++;
             return pointer;
