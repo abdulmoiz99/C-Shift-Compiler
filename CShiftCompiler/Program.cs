@@ -41,7 +41,7 @@ namespace CShiftCompiler
         static void Main()
         {
          //   List<Token> tokens = GenerateTokens(Application.StartupPath + @"\Input\input2.txt");
-            Console.WriteLine(IsIdentifier("12314"));
+            Console.WriteLine(ClassIdentification.IsKeyword("junaid"));
             //foreach (Token token in tokens)
             //{
 
@@ -76,7 +76,7 @@ namespace CShiftCompiler
             //{
             //    Console.WriteLine("\t" + token.GetLineNo() + "\t" + token.GetValue());
             //}
-            //Console.ReadKey();
+            Console.ReadKey();
         }
 
         private static List<Token> GenerateTokens(string inputFile)
