@@ -15,6 +15,7 @@ namespace CShiftCompiler
             {
                 //Data Types
                 {"Data Type", new List<string>() {"int", "string", "char", "bool", "long", "double", "float"} },
+                {"void", new List<string>() {"void"} },
 
                 //Access Modifiers
                 {"Access Modifiers", new List<string>() {"public", "private", "protected"} },
@@ -74,12 +75,12 @@ namespace CShiftCompiler
             Dictionary<string, List<string>> operators = new Dictionary<string, List<string>>()
             {
                 //Arithmetic
-                {"+", new List<string>() {"+"} },
-                {"-", new List<string>() {"-"} },
+                {"PM", new List<string>() {"+", "-"} },
                 {"MDM", new List<string>() {"*", "/", "%"} },
 
                 //Logical
-                {"AND-OR", new List<string>() {"||", "&&"} },
+                {"OR", new List<string>() {"||"} },
+                {"AND", new List<string>() {"&&"} },
                 {"!", new List<string>() {"!"} },
 
                 //Relational
@@ -90,7 +91,7 @@ namespace CShiftCompiler
 
                 //Assignment
                 {"=", new List<string>() {"="} },
-                {"Compound Assignment", new List<string>() {"+=", "-=", "/=", "*="} }
+                {"Compound-Assignment", new List<string>() {"+=", "-=", "/=", "*="} }
             };
 
             foreach (string classPart in operators.Keys)
