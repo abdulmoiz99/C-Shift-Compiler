@@ -25,6 +25,9 @@ namespace CShiftCompiler
                 {"else", new List<string>() {"else"} },
                 {"elif", new List<string>() {"elif"} },
 
+                //Boolean
+                {"bool-constant", new List<string>() {"true", "false"} },         
+
                 //Iterative
                 {"foreach", new List<string>() {"foreach"} },
                 {"for", new List<string>() {"for"} },
@@ -40,7 +43,7 @@ namespace CShiftCompiler
                 {"try", new List<string>() {"try"} },
                 {"catch", new List<string>() {"catch"} },
                 {"finally", new List<string>() {"finally"} },
-
+                 
                 //Data Defining
                 {"var", new List<string>() {"var"}  },
                 {"const", new List<string>() {"const"}  },
