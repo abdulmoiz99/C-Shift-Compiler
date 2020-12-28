@@ -15,7 +15,7 @@ namespace CShiftCompiler
 
         static void Main()
         {
-            List<Token> tokens = GenerateTokens(Application.StartupPath + @"\Input\input2.txt");
+            List<Token> tokens = GenerateTokens(Application.StartupPath + @"\Input\input.txt");
 
             foreach (Token token in tokens)
             {
@@ -177,7 +177,7 @@ namespace CShiftCompiler
                         i++;
                     }
                     //FOR LINEBREAK OR SPACE
-                    else if (cr[i] == '\n' || cr[i] == ' ' || cr[i] == '\r')
+                    else if (cr[i] == '\n' || cr[i] == ' ' || cr[i] == '\r' || cr[i] == '\t')
                     {
                         if (cr[i] == '\n') lineCounter++;
                         //Ignore
