@@ -15,7 +15,7 @@ namespace CShiftCompiler
 
         static void Main()
         {
-            List<Token> tokens = GenerateTokens(Application.StartupPath + @"\Input\input.txt");
+            List<Token> tokens = GenerateTokens(Application.StartupPath + @"\Input\input1.txt");
 
             foreach (Token token in tokens)
             {
@@ -64,13 +64,13 @@ namespace CShiftCompiler
             else if (ClassIdentification.IsStringConstant(token.GetValue()))
             {
                 token.SetClass("string-constant");
-                token.SetValue(token.GetValue().Replace("\"",""));
+                token.SetValue(token.GetValue().Substring(1, token.GetValue().Length - 2));
             }
             //char const
             else if (ClassIdentification.IsCharConstant(token.GetValue()))
             {
                 token.SetClass("char-constant");
-                token.SetValue(token.GetValue().Replace("'", ""));
+                token.SetValue(token.GetValue().Substring(1, token.GetValue().Length - 2));
             }
             //int
             else if (ClassIdentification.IsIntConstant(token.GetValue()))
@@ -82,8 +82,8 @@ namespace CShiftCompiler
             {
                 token.SetClass("float-constant");
             }
-            //punctuator
-            else if (ClassIdentification.IsPunctuator(token.GetValue()))
+            //punctuator (including dot)
+            else if (ClassIdentification.IsPunctuator(token.GetValue()) || ClassIdentification.IsDot(token.GetValue()))
             {
                 token.SetClass(token.GetValue());
             }

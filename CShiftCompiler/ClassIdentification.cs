@@ -114,6 +114,11 @@ namespace CShiftCompiler
             else return false;
         }
 
+        public static bool IsDot(string value) 
+        {
+            return value == ".";
+        }
+
         public static bool IsIdentifier(string value) 
         {
             return Regex.IsMatch(value, @"^[a-zA-Z_]\w*$");
