@@ -17,6 +17,7 @@ namespace CShiftCompiler
         {
             Token endToken = new Token();
             endToken.SetClass("$");
+            endToken.SetLineNo(lineCounter);
             tokens.Add(endToken);
         }
 

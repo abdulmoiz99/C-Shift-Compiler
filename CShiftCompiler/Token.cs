@@ -54,7 +54,10 @@ namespace CShiftCompiler
         {
             this.valuePart = valuePart;
         }
-
+        public void SetLineNo(int num) 
+        {
+            this.lineNumber = num;
+        }
         public string GetClass()
         {
             return classPart;
@@ -67,5 +70,6 @@ namespace CShiftCompiler
         {
             return lineNumber;
         }
+
     }
 }

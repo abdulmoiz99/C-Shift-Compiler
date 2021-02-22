@@ -14,7 +14,7 @@ namespace CShiftCompiler
             Dictionary<string, List<string>> keywords = new Dictionary<string, List<string>>()
             {
                 //Data Types
-                {"Data Type", new List<string>() {"int", "string", "char", "bool", "long", "double", "float"} },
+                {"Data-Type", new List<string>() {"int", "string", "char", "bool", "long", "double", "float"} },
                 {"void", new List<string>() {"void"} },
 
                 //Access Modifiers

@@ -9,8 +9,9 @@ namespace CShiftCompiler
         static void Main()
         {
             LexicalAnalyzer lexicalAnalyzer = new LexicalAnalyzer();
+            SyntaxAnalyzer syntaxAnalyzer;
 
-            List<Token> tokens = lexicalAnalyzer.GenerateTokens(Application.StartupPath + @"\Input\input3.txt");
+            List<Token> tokens = lexicalAnalyzer.GenerateTokens(Application.StartupPath + @"\Input\test.txt");
 
             foreach (Token token in tokens)
             {
@@ -20,6 +21,10 @@ namespace CShiftCompiler
             lexicalAnalyzer.SaveTokens(tokens);
 
             lexicalAnalyzer.GenerateEndToken(tokens);
+
+            Console.WriteLine();
+
+            syntaxAnalyzer = new SyntaxAnalyzer(tokens);
 
             Console.ReadKey();
         }
