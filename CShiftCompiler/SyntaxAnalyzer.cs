@@ -14,7 +14,7 @@ namespace CShiftCompiler
         public SyntaxAnalyzer(List<Token> tokens) 
         {
             this.tokens = tokens;
-            if (for_statement()) //S i.e. Starting Non Terminal returns true indicates tree is complete.
+            if (if_elif_else()) //S i.e. Starting Non Terminal returns true indicates tree is complete.
             {
                 //index++; //Temporary
 
@@ -896,6 +896,245 @@ namespace CShiftCompiler
                     {
                         if (list()) 
                         {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private bool foreach_statement() 
+        {
+            if (tokens[index].GetClass() == "foreach") 
+            {
+                index++;
+
+                if (tokens[index].GetClass() == "(") 
+                {
+                    index++;
+
+                    if (ID()) 
+                    {
+                        if (tokens[index].GetClass() == "ID") 
+                        {
+                            index++;
+
+                            if (tokens[index].GetClass() == "in") 
+                            {
+                                index++;
+
+                                if (tokens[index].GetClass() == "ID") 
+                                {
+                                    index++;
+
+                                    if (X()) 
+                                    {
+                                        if (tokens[index].GetClass() == ")") 
+                                        {
+                                            index++;
+
+                                            if (tokens[index].GetClass() == "{") 
+                                            {
+                                                index++;
+
+                                                if (MST()) 
+                                                {
+                                                    if (tokens[index].GetClass() == "}") 
+                                                    {
+                                                        index++;
+
+                                                        return true;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private bool ID() 
+        {
+            if (tokens[index].GetClass() == "Data-Type")
+            {
+                index++;
+
+                return true;
+            }
+
+            else if (tokens[index].GetClass() == "ID") 
+            {
+                index++;
+
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool until_statement() 
+        {
+            if (tokens[index].GetClass() == "until") 
+            {
+                index++;
+
+                if (tokens[index].GetClass() == "(") 
+                {
+                    index++;
+
+                    if (OE()) 
+                    {
+                        if (tokens[index].GetClass() == ")") 
+                        {
+                            index++;
+
+                            if (tokens[index].GetClass() == "{") 
+                            {
+                                index++;
+
+                                if (MST()) 
+                                {
+                                    if (tokens[index].GetClass() == "}") 
+                                    {
+                                        index++;
+
+                                        return true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        private bool if_elif_else() 
+        {
+            if (tokens[index].GetClass() == "if") 
+            {
+                index++;
+
+                if (tokens[index].GetClass() == "(") 
+                {
+                    index++;
+
+                    if (OE()) 
+                    {
+                        if (tokens[index].GetClass() == ")") 
+                        {
+                            index++;
+
+                            if (tokens[index].GetClass() == "{") 
+                            {
+                                index++;
+
+                                if (MST()) 
+                                {
+                                    if (tokens[index].GetClass() == "}") 
+                                    {
+                                        index++;
+
+                                        if (elif()) 
+                                        {
+                                            return true;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private bool elif() 
+        {
+            if (tokens[index].GetClass() == "elif")
+            {
+                index++;
+
+                if (tokens[index].GetClass() == "(")
+                {
+                    index++;
+
+                    if (OE())
+                    {
+                        if (tokens[index].GetClass() == ")")
+                        {
+                            index++;
+
+                            if (tokens[index].GetClass() == "{")
+                            {
+                                index++;
+
+                                if (MST())
+                                {
+                                    if (tokens[index].GetClass() == "}")
+                                    {
+                                        index++;
+
+                                        if (elif())
+                                        {
+                                            return true;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            else if (tokens[index].GetClass() == "else")
+            {
+                if (else_statement())
+                {
+                    return true;
+                }
+            }
+
+            else 
+            {
+                if (tokens[index].GetClass() == "until" || tokens[index].GetClass() == "var" || tokens[index].GetClass() == "Data-Type" ||
+                    tokens[index].GetClass() == "if" || tokens[index].GetClass() == "for" || tokens[index].GetClass() == "foreach" ||
+                    tokens[index].GetClass() == "toss" || tokens[index].GetClass() == "try" || tokens[index].GetClass() == "const" ||
+                    tokens[index].GetClass() == "ID" || tokens[index].GetClass() == "jump" || tokens[index].GetClass() == "skip" ||
+                    tokens[index].GetClass() == "stop" || tokens[index].GetClass() == "Inc-Dec" || tokens[index].GetClass() == "}") 
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool else_statement() 
+        {
+            if (tokens[index].GetClass() == "else") 
+            {
+                index++;
+
+                if (tokens[index].GetClass() == "{") 
+                {
+                    index++;
+
+                    if (MST()) 
+                    {
+                        if (tokens[index].GetClass() == "}") 
+                        {
+                            index++;
+
                             return true;
                         }
                     }
