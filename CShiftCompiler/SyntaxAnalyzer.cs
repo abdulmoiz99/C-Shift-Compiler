@@ -14,9 +14,9 @@ namespace CShiftCompiler
         public SyntaxAnalyzer(List<Token> tokens) 
         {
             this.tokens = tokens;
-            if (if_elif_else()) //S i.e. Starting Non Terminal returns true indicates tree is complete.
+            if (MST()) //S i.e. Starting Non Terminal returns true indicates tree is complete.
             {
-                //index++; //Temporary
+                index++; //Temporary
 
                 if (tokens[index].GetClass() == "$") // Input is completely parsed.
                 {
@@ -477,8 +477,8 @@ namespace CShiftCompiler
                 if (tokens[index].GetClass() == "until" || tokens[index].GetClass() == "var" || tokens[index].GetClass() == "Data-Type" || 
                     tokens[index].GetClass() == "if" || tokens[index].GetClass() == "for" || tokens[index].GetClass() == "foreach" || 
                     tokens[index].GetClass() == "toss" || tokens[index].GetClass() == "try" || tokens[index].GetClass() == "const" || 
-                    tokens[index].GetClass() == "ID" || tokens[index].GetClass() == "jump" || tokens[index].GetClass() == "skip" || 
-                    tokens[index].GetClass() == "stop" || tokens[index].GetClass() == "Inc-Dec" || tokens[index].GetClass() == "}" || 
+                    tokens[index].GetClass() == "ID" || tokens[index].GetClass() == "jump" || tokens[index].GetClass() == "skip-stop" || 
+                    tokens[index].GetClass() == "Inc-Dec" || tokens[index].GetClass() == "}" || 
                     tokens[index].GetClass() == ")" || tokens[index].GetClass() == "=" || tokens[index].GetClass() == "Compound-Assignment" || 
                     tokens[index].GetClass() == "MDM" || tokens[index].GetClass() == "PM" || tokens[index].GetClass() == "Relational" || 
                     tokens[index].GetClass() == "AND" || tokens[index].GetClass() == "OR" || tokens[index].GetClass() == ";" || tokens[index].GetClass() == ",") 
@@ -757,9 +757,32 @@ namespace CShiftCompiler
             return false;
         }
 
-        private bool MST() //Pending
+        private bool MST()
         {
-            return true;
+            if (tokens[index].GetClass() == "until" || tokens[index].GetClass() == "var" || tokens[index].GetClass() == "Data-Type" ||
+                tokens[index].GetClass() == "if" || tokens[index].GetClass() == "for" || tokens[index].GetClass() == "foreach" ||
+                tokens[index].GetClass() == "toss" || tokens[index].GetClass() == "try" || tokens[index].GetClass() == "const" ||
+                tokens[index].GetClass() == "ID" || tokens[index].GetClass() == "jump" || tokens[index].GetClass() == "skip-stop" ||
+                tokens[index].GetClass() == "Inc-Dec")
+            {
+                if (SST())
+                {
+                    if (MST())
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            else 
+            {
+                if (tokens[index].GetClass() == "}" || tokens[index].GetClass() == "return") 
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private bool declaration() 
@@ -1109,8 +1132,8 @@ namespace CShiftCompiler
                 if (tokens[index].GetClass() == "until" || tokens[index].GetClass() == "var" || tokens[index].GetClass() == "Data-Type" ||
                     tokens[index].GetClass() == "if" || tokens[index].GetClass() == "for" || tokens[index].GetClass() == "foreach" ||
                     tokens[index].GetClass() == "toss" || tokens[index].GetClass() == "try" || tokens[index].GetClass() == "const" ||
-                    tokens[index].GetClass() == "ID" || tokens[index].GetClass() == "jump" || tokens[index].GetClass() == "skip" ||
-                    tokens[index].GetClass() == "stop" || tokens[index].GetClass() == "Inc-Dec" || tokens[index].GetClass() == "}") 
+                    tokens[index].GetClass() == "ID" || tokens[index].GetClass() == "jump" || tokens[index].GetClass() == "skip-stop" ||
+                    tokens[index].GetClass() == "Inc-Dec" || tokens[index].GetClass() == "}") 
                 {
                     return true;
                 }
@@ -1132,6 +1155,738 @@ namespace CShiftCompiler
                     if (MST()) 
                     {
                         if (tokens[index].GetClass() == "}") 
+                        {
+                            index++;
+
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private bool toss() 
+        {
+            if (tokens[index].GetClass() == "toss") 
+            {
+                index++;
+
+                if (tokens[index].GetClass() == "new") 
+                {
+                    index++;
+
+                    if (tokens[index].GetClass() == "ID") 
+                    {
+                        index++;
+
+                        if (tokens[index].GetClass() == "(") 
+                        {
+                            index++;
+
+                            if (PL()) 
+                            {
+                                if (tokens[index].GetClass() == ")") 
+                                {
+                                    index++;
+
+                                    if (tokens[index].GetClass() == ";") 
+                                    {
+                                        index++;
+
+                                        return true;
+                                    }                                  
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        private bool try_statement() 
+        {
+            if (tokens[index].GetClass() == "try") 
+            {
+                index++;
+
+                if (tokens[index].GetClass() == "{") 
+                {
+                    index++;
+
+                    if (MST())
+                    {
+                        if (tokens[index].GetClass() == "}") 
+                        {
+                            index++;
+
+                            if (catch_statement()) 
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private bool catch_statement()
+        {
+            if (tokens[index].GetClass() == "catch") 
+            {
+                index++;
+
+                if (tokens[index].GetClass() == "(") 
+                {
+                    index++;
+
+                    if (tokens[index].GetClass() == "ID") 
+                    {
+                        index++;
+
+                        if (ID_opt()) 
+                        {
+                            if (tokens[index].GetClass() == ")") 
+                            {
+                                index++;
+
+                                if (tokens[index].GetClass() == "{") 
+                                {
+                                    index++;
+
+                                    if (MST()) 
+                                    {
+                                        if (tokens[index].GetClass() == "}") 
+                                        {
+                                            index++;
+
+                                            if (finally_statement()) 
+                                            {
+                                                return true;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private bool finally_statement()
+        {
+            if (tokens[index].GetClass() == "finally")
+            {
+                index++;
+
+                if (tokens[index].GetClass() == "{")
+                {
+                    index++;
+
+                    if (MST_finally())
+                    {
+                        if (tokens[index].GetClass() == "}")
+                        {
+                            index++;
+
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            else 
+            {
+                if (tokens[index].GetClass() == "until" || tokens[index].GetClass() == "var" || tokens[index].GetClass() == "Data-Type" ||
+                    tokens[index].GetClass() == "if" || tokens[index].GetClass() == "for" || tokens[index].GetClass() == "foreach" ||
+                    tokens[index].GetClass() == "toss" || tokens[index].GetClass() == "try" || tokens[index].GetClass() == "const" ||
+                    tokens[index].GetClass() == "ID" || tokens[index].GetClass() == "jump" || tokens[index].GetClass() == "skip-stop" ||
+                    tokens[index].GetClass() == "Inc-Dec" || tokens[index].GetClass() == "}")
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool MST_finally()
+        {
+            if (tokens[index].GetClass() == "until" || tokens[index].GetClass() == "var" || tokens[index].GetClass() == "Data-Type" ||
+                tokens[index].GetClass() == "if" || tokens[index].GetClass() == "for" || tokens[index].GetClass() == "foreach" ||
+                tokens[index].GetClass() == "toss" || tokens[index].GetClass() == "try" || tokens[index].GetClass() == "const" ||
+                tokens[index].GetClass() == "ID" || tokens[index].GetClass() == "Inc-Dec")
+            {
+                if (SST_finally())
+                {
+                    if (MST_finally())
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            else
+            {
+                if (tokens[index].GetClass() == "}" || tokens[index].GetClass() == "return")
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool ID_opt() 
+        {
+            if (tokens[index].GetClass() == "ID")
+            {
+                index++;
+
+                return true;
+            }
+
+            else 
+            {
+                if (tokens[index].GetClass() == ")") 
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool skip_stop() 
+        {
+            if (tokens[index].GetClass() == "skip-stop") 
+            {
+                index++;
+
+                if (tokens[index].GetClass() == ";") 
+                {
+                    index++;
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool jump() 
+        {
+            if (tokens[index].GetClass() == "jump")
+            {
+                index++;
+
+                if (tokens[index].GetClass() == "ID") 
+                {
+                    index++;
+
+                    if (tokens[index].GetClass() == ";") 
+                    {
+                        index++;
+
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private bool const_statement() 
+        {
+            if (tokens[index].GetClass() == "const") 
+            {
+                index++;
+
+                if (tokens[index].GetClass() == "Data-Type") 
+                {
+                    index++;
+
+                    if (tokens[index].GetClass() == "ID") 
+                    {
+                        index++;
+
+                        if (const_initialization()) 
+                        {
+                            if (const_list()) 
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private bool const_initialization() 
+        {
+            if (tokens[index].GetClass() == "=") 
+            {
+                index++;
+
+                if (OE()) 
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool const_list() 
+        {
+            if (tokens[index].GetClass() == ";")
+            {
+                index++;
+
+                return true;
+            }
+
+            else if (tokens[index].GetClass() == ",") 
+            {
+                index++;
+
+                if (tokens[index].GetClass() == "ID") 
+                {
+                    index++;
+
+                    if (const_initialization()) 
+                    {
+                        if (const_list()) 
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private bool init() 
+        {
+            if (tokens[index].GetClass() == "ID" || tokens[index].GetClass() == "int-constant" || tokens[index].GetClass() == "float-constant" ||
+                tokens[index].GetClass() == "char-constant" || tokens[index].GetClass() == "string-constant" || tokens[index].GetClass() == "bool-constant" ||
+                tokens[index].GetClass() == "(" || tokens[index].GetClass() == "!" || tokens[index].GetClass() == "Inc-Dec") 
+            {
+                if (OE()) 
+                {
+                    return true;
+                }
+            }
+
+            else if (tokens[index].GetClass() == "new") 
+            {
+                index++;
+
+                if (constructor()) 
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool Z() 
+        {
+            if (tokens[index].GetClass() == "(")
+            {
+                index++;
+
+                if (PL())
+                {
+                    if (tokens[index].GetClass() == ")")
+                    {
+                        index++;
+
+                        if (Z1())
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            else if (tokens[index].GetClass() == ".")
+            {
+                index++;
+
+                if (tokens[index].GetClass() == "ID")
+                {
+                    index++;
+
+                    if (Z())
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            else if (tokens[index].GetClass() == "Inc-Dec")
+            {
+                index++;
+
+                if (tokens[index].GetClass() == ";")
+                {
+                    index++;
+
+                    return true;
+                }
+            }
+
+            else if (tokens[index].GetClass() == ";")
+            {
+                index++;
+
+                return true;
+            }
+
+            else if (tokens[index].GetClass() == "ID")
+            {
+                index++;
+
+                if (tokens[index].GetClass() == "=")
+                {
+                    index++;
+
+                    if (tokens[index].GetClass() == "new")
+                    {
+                        index++;
+
+                        if (constructor())
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            else if (tokens[index].GetClass() == ":") 
+            {
+                index++;
+
+                if (SST()) 
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool Z1()
+        {
+            if (tokens[index].GetClass() == ";")
+            {
+                index++;
+
+                return true;
+            }
+
+            else if (tokens[index].GetClass() == ".") 
+            {
+                index++;
+
+                if (tokens[index].GetClass() == "ID") 
+                {
+                    index++;
+
+                    if (Z()) 
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private bool SST() 
+        {
+            if (tokens[index].GetClass() == "until")
+            {
+                if (until_statement())
+                {
+                    return true;
+                }
+            }
+
+            else if (tokens[index].GetClass() == "var")
+            {
+                index++;
+
+                if (tokens[index].GetClass() == "ID")
+                {
+                    index++;
+
+                    if (tokens[index].GetClass() == "=")
+                    {
+                        index++;
+
+                        if (init())
+                        {
+                            if (tokens[index].GetClass() == ";") 
+                            {
+                                index++;
+
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            else if (tokens[index].GetClass() == "Data-Type")
+            {
+                index++;
+
+                if (tokens[index].GetClass() == "ID")
+                {
+                    index++;
+
+                    if (initialization())
+                    {
+                        if (list())
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            else if (tokens[index].GetClass() == "if")
+            {
+                if (if_elif_else())
+                {
+                    return true;
+                }
+            }
+
+            else if (tokens[index].GetClass() == "for")
+            {
+                if (for_statement())
+                {
+                    return true;
+                }
+            }
+
+            else if (tokens[index].GetClass() == "foreach")
+            {
+                if (foreach_statement())
+                {
+                    return true;
+                }
+            }
+
+            else if (tokens[index].GetClass() == "toss")
+            {
+                if (toss())
+                {
+                    return true;
+                }
+            }
+
+            else if (tokens[index].GetClass() == "try")
+            {
+                if (try_statement())
+                {
+                    return true;
+                }
+            }
+
+            else if (tokens[index].GetClass() == "const")
+            {
+                if (const_statement())
+                {
+                    return true;
+                }
+            }
+
+            else if (tokens[index].GetClass() == "ID")
+            {
+                index++;
+
+                if (Z())
+                {
+                    return true;
+                }
+            }
+
+            else if (tokens[index].GetClass() == "jump")
+            {
+                if (jump())
+                {
+                    return true;
+                }
+            }
+
+            else if (tokens[index].GetClass() == "Inc-Dec")
+            {
+                index++;
+
+                if (tokens[index].GetClass() == "ID")
+                {
+                    index++;
+
+                    if (X())
+                    {
+                        if (tokens[index].GetClass() == ";")
+                        {
+                            index++;
+
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            else if (tokens[index].GetClass() == "skip-stop") 
+            {
+                if (skip_stop()) 
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool SST_finally() 
+        {
+            if (tokens[index].GetClass() == "until")
+            {
+                if (until_statement())
+                {
+                    return true;
+                }
+            }
+
+            else if (tokens[index].GetClass() == "var")
+            {
+                index++;
+
+                if (tokens[index].GetClass() == "ID")
+                {
+                    index++;
+
+                    if (tokens[index].GetClass() == "=")
+                    {
+                        index++;
+
+                        if (init())
+                        {
+                            if (tokens[index].GetClass() == ";")
+                            {
+                                index++;
+
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            else if (tokens[index].GetClass() == "Data-Type")
+            {
+                index++;
+
+                if (tokens[index].GetClass() == "ID")
+                {
+                    index++;
+
+                    if (initialization())
+                    {
+                        if (list())
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            else if (tokens[index].GetClass() == "if")
+            {
+                if (if_elif_else())
+                {
+                    return true;
+                }
+            }
+
+            else if (tokens[index].GetClass() == "for")
+            {
+                if (for_statement())
+                {
+                    return true;
+                }
+            }
+
+            else if (tokens[index].GetClass() == "foreach")
+            {
+                if (foreach_statement())
+                {
+                    return true;
+                }
+            }
+
+            else if (tokens[index].GetClass() == "toss")
+            {
+                if (toss())
+                {
+                    return true;
+                }
+            }
+
+            else if (tokens[index].GetClass() == "try")
+            {
+                if (try_statement())
+                {
+                    return true;
+                }
+            }
+
+            else if (tokens[index].GetClass() == "const")
+            {
+                if (const_statement())
+                {
+                    return true;
+                }
+            }
+
+            else if (tokens[index].GetClass() == "ID")
+            {
+                index++;
+
+                if (Z())
+                {
+                    return true;
+                }
+            }
+
+            else if (tokens[index].GetClass() == "Inc-Dec")
+            {
+                index++;
+
+                if (tokens[index].GetClass() == "ID")
+                {
+                    index++;
+
+                    if (X())
+                    {
+                        if (tokens[index].GetClass() == ";") 
                         {
                             index++;
 
