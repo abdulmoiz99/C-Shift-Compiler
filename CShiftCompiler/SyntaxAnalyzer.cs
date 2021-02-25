@@ -1704,17 +1704,37 @@ namespace CShiftCompiler
 
                         if (constructor())
                         {
-                            return true;
+                            if (tokens[index].GetClass() == ";")
+                            {
+                                index++;
+
+                                return true;
+                            }
                         }
                     }
                 }
             }
 
-            else if (tokens[index].GetClass() == ":") 
+            else if (tokens[index].GetClass() == "=") 
             {
                 index++;
 
-                if (SST()) 
+                if (OE()) 
+                {
+                    if (tokens[index].GetClass() == ";") 
+                    {
+                        index++;
+
+                        return true;
+                    }
+                }
+            }
+
+            else if (tokens[index].GetClass() == ":")
+            {
+                index++;
+
+                if (SST())
                 {
                     return true;
                 }
