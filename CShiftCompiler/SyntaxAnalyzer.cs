@@ -14,9 +14,9 @@ namespace CShiftCompiler
         public SyntaxAnalyzer(List<Token> tokens) 
         {
             this.tokens = tokens;
-            if (MST()) //S i.e. Starting Non Terminal returns true indicates tree is complete.
+            if (struct_def()) //S i.e. Starting Non Terminal returns true indicates tree is complete.
             {
-                index++; //Temporary
+                //index++; //Temporary
 
                 if (tokens[index].GetClass() == "$") // Input is completely parsed.
                 {
@@ -1893,6 +1893,352 @@ namespace CShiftCompiler
                             return true;
                         }
                     }
+                }
+            }
+
+            return false;
+        }
+
+        private bool struct_def() 
+        {
+            if (tokens[index].GetClass() == "struct") 
+            {
+                index++;
+
+                if (tokens[index].GetClass() == "ID") 
+                {
+                    index++;
+
+                    if (struct_body())
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private bool struct_body()
+        {
+            if (tokens[index].GetClass() == "{")
+            {
+                index++;
+
+                if (struct_content())
+                {
+                    if (tokens[index].GetClass() == "}") 
+                    {
+                        index++;
+
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private bool struct_content()
+        {
+            if (tokens[index].GetClass() == "Data-Type" || tokens[index].GetClass() == "const" || tokens[index].GetClass() == "static" ||
+                tokens[index].GetClass() == "void" || tokens[index].GetClass() == "struct")
+            {
+                if (struct_content2())
+                {
+                    if (struct_content())
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            else 
+            {
+                if (tokens[index].GetClass() == "}") 
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool struct_content2()
+        {
+            if (tokens[index].GetClass() == "const")
+            {
+                if (const_statement())
+                {
+                    return true;
+                }
+            }
+
+            else if (tokens[index].GetClass() == "struct")
+            {
+                if (struct_def())
+                {
+                    return true;
+                }
+            }
+
+            else if (tokens[index].GetClass() == "static" || tokens[index].GetClass() == "Data-Type" || tokens[index].GetClass() == "void") 
+            {
+                if (static_choice()) 
+                {
+                    if (struct_content3()) 
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        private bool struct_content3()
+        {
+            if (tokens[index].GetClass() == "Data-Type")
+            {
+                index++;
+
+                if (tokens[index].GetClass() == "ID")
+                {
+                    index++;
+
+                    if (DT())
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            else if (tokens[index].GetClass() == "void") 
+            {
+                index++;
+
+                if (tokens[index].GetClass() == "ID") 
+                {
+                    index++;
+
+                    if (tokens[index].GetClass() == "(") 
+                    {
+                        index++;
+
+                        if (PL_def()) 
+                        {
+                            if (tokens[index].GetClass() == ")") 
+                            {
+                                index++;
+
+                                if (tokens[index].GetClass() == "{") 
+                                {
+                                    index++;
+
+                                    if (MST()) 
+                                    {
+                                        if (tokens[index].GetClass() == "}") 
+                                        {
+                                            index++;
+
+                                            return true;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private bool static_choice() 
+        {
+            if (tokens[index].GetClass() == "static")
+            {
+                index++;
+
+                return true;
+            }
+
+            else 
+            {
+                if (tokens[index].GetClass() == "Data-Type" || tokens[index].GetClass() == "void") 
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool DT() 
+        {
+            if (tokens[index].GetClass() == "=" || tokens[index].GetClass() == "," || tokens[index].GetClass() == ";")
+            {
+                if (initialization())
+                {
+                    if (list())
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            else if (tokens[index].GetClass() == "(") 
+            {
+                index++;
+
+                if (PL_def()) 
+                {
+                    if (tokens[index].GetClass() == ")") 
+                    {
+                        index++;
+
+                        if (tokens[index].GetClass() == "{") 
+                        {
+                            index++;
+
+                            if (MST()) 
+                            {
+                                if (return_statement()) 
+                                {
+                                    if (tokens[index].GetClass() == "}") 
+                                    {
+                                        index++;
+
+                                        return true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private bool return_statement()
+        {
+            if (tokens[index].GetClass() == "return") 
+            {
+                index++;
+
+                if (OE()) 
+                {
+                    if (tokens[index].GetClass() == ";") 
+                    {
+                        index++;
+
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private bool PL_def() 
+        {
+            if (tokens[index].GetClass() == "ref" || tokens[index].GetClass() == "Data-Type" || tokens[index].GetClass() == "ID")
+            {
+                if (ref_choice())
+                {
+                    if (P_choice())
+                    {
+                        if (tokens[index].GetClass() == "ID")
+                        {
+                            index++;
+
+                            if (PL_def2())
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            else 
+            {
+                if (tokens[index].GetClass() == ")") 
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool PL_def2() 
+        {
+            if (tokens[index].GetClass() == ",")
+            {
+                index++;
+
+                if (ref_choice())
+                {
+                    if (P_choice())
+                    {
+                        if (tokens[index].GetClass() == "ID")
+                        {
+                            index++;
+
+                            if (PL_def2())
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            else 
+            {
+                if (tokens[index].GetClass() == ")") 
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool P_choice()
+        {
+            if (tokens[index].GetClass() == "ID") 
+            {
+                index++;
+
+                return true;
+            }
+
+            else if (tokens[index].GetClass() == "Data-Type") 
+            {
+                index++;
+
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool ref_choice() 
+        {
+            if (tokens[index].GetClass() == "ref")
+            {
+                index++;
+
+                return true;
+            }
+
+            else 
+            {
+                if (tokens[index].GetClass() == "Data-Type" || tokens[index].GetClass() == "ID") 
+                {
+                    return true;
                 }
             }
 
