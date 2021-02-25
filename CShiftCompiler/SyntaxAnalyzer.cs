@@ -14,7 +14,7 @@ namespace CShiftCompiler
         public SyntaxAnalyzer(List<Token> tokens) 
         {
             this.tokens = tokens;
-            if (struct_def()) //S i.e. Starting Non Terminal returns true indicates tree is complete.
+            if (interface_def()) //S i.e. Starting Non Terminal returns true indicates tree is complete.
             {
                 //index++; //Temporary
 
@@ -2240,6 +2240,161 @@ namespace CShiftCompiler
                 {
                     return true;
                 }
+            }
+
+            return false;
+        }
+
+        private bool interface_def() 
+        {
+            if (tokens[index].GetClass() == "interface") 
+            {
+                index++;
+
+                if (tokens[index].GetClass() == "ID") 
+                {
+                    index++;
+
+                    if (inheritance()) 
+                    {
+                        if (tokens[index].GetClass() == "{") 
+                        {
+                            index++;
+
+                            if (func_prototypes()) 
+                            {
+                                if (tokens[index].GetClass() == "}") 
+                                {
+                                    index++;
+
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private bool inheritance() 
+        {
+            if (tokens[index].GetClass() == ":")
+            {
+                index++;
+
+                if (tokens[index].GetClass() == "ID")
+                {
+                    index++;
+
+                    if (inheritance2())
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            else 
+            {
+                if (tokens[index].GetClass() == "{") 
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool inheritance2()
+        {
+            if (tokens[index].GetClass() == ",")
+            {
+                index++;
+
+                if (tokens[index].GetClass() == "ID")
+                {
+                    index++;
+
+                    if (inheritance2())
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            else 
+            {
+                if (tokens[index].GetClass() == "{")
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool func_prototypes() 
+        {
+            if (tokens[index].GetClass() == "void" || tokens[index].GetClass() == "Data-Type")
+            {
+                if (return_type())
+                {
+                    if (tokens[index].GetClass() == "ID")
+                    {
+                        index++;
+
+                        if (tokens[index].GetClass() == "(")
+                        {
+                            index++;
+
+                            if (PL_def())
+                            {
+                                if (tokens[index].GetClass() == ")")
+                                {
+                                    index++;
+
+                                    if (tokens[index].GetClass() == ";")
+                                    {
+                                        index++;
+
+                                        if (func_prototypes())
+                                        {
+                                            return true;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            else 
+            {
+                if (tokens[index].GetClass() == "}") 
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool return_type()
+        {
+            if (tokens[index].GetClass() == "void")
+            {
+                index++;
+
+                return true;
+            }
+
+            else if (tokens[index].GetClass() == "Data-Type") 
+            {
+                index++;
+
+                return true;
             }
 
             return false;
