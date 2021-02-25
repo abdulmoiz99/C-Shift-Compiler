@@ -14,10 +14,8 @@ namespace CShiftCompiler
         public SyntaxAnalyzer(List<Token> tokens) 
         {
             this.tokens = tokens;
-            if (interface_def()) //S i.e. Starting Non Terminal returns true indicates tree is complete.
+            if (S()) //S i.e. Starting Non Terminal returns true indicates tree is complete.
             {
-                //index++; //Temporary
-
                 if (tokens[index].GetClass() == "$") // Input is completely parsed.
                 {
                     Console.WriteLine("Source code executed successfully!");
@@ -35,7 +33,144 @@ namespace CShiftCompiler
 
         private bool S()
         {
-            throw new NotImplementedException();
+            if (tokens[index].GetClass() == "class" || tokens[index].GetClass() == "abstract" || tokens[index].GetClass() == "static" || 
+                tokens[index].GetClass() == "final") 
+            {
+                if (main_class()) 
+                {
+                    if (defs()) 
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private bool defs()
+        {
+            if (tokens[index].GetClass() == "class" || tokens[index].GetClass() == "abstract" || tokens[index].GetClass() == "static" ||
+                tokens[index].GetClass() == "final")
+            {
+                if (class_def())
+                {
+                    if (defs())
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            else if (tokens[index].GetClass() == "interface")
+            {
+                if (interface_def())
+                {
+                    if (defs())
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            else if (tokens[index].GetClass() == "struct")
+            {
+                if (struct_def())
+                {
+                    if (defs())
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            else 
+            {
+                if (tokens[index].GetClass() == "$") 
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool main_class()
+        {
+            if (tokens[index].GetClass() == "class" || tokens[index].GetClass() == "abstract" || tokens[index].GetClass() == "static" ||
+                tokens[index].GetClass() == "final") 
+            {
+                if (class_choice()) 
+                {
+                    if (tokens[index].GetClass() == "class") 
+                    {
+                        index++;
+
+                        if (tokens[index].GetClass() == "ID") 
+                        {
+                            index++;
+
+                            if (inheritance()) 
+                            {
+                                if (tokens[index].GetClass() == "{") 
+                                {
+                                    index++;
+
+                                    if (tokens[index].GetClass() == "static") 
+                                    {
+                                        index++;
+
+                                        if (tokens[index].GetClass() == "void") 
+                                        {
+                                            index++;
+
+                                            if (tokens[index].GetValue() == "Main") 
+                                            {
+                                                index++;
+
+                                                if (tokens[index].GetClass() == "(") 
+                                                {
+                                                    index++;
+
+                                                    if (tokens[index].GetClass() == ")") 
+                                                    {
+                                                        index++;
+
+                                                        if (tokens[index].GetClass() == "{") 
+                                                        {
+                                                            index++;
+
+                                                            if (MST()) 
+                                                            {
+                                                                if (tokens[index].GetClass() == "}") 
+                                                                {
+                                                                    index++;
+
+                                                                    if (class_body()) 
+                                                                    {
+                                                                        if (tokens[index].GetClass() == "}") 
+                                                                        {
+                                                                            index++;
+
+                                                                            return true;
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return false;
         }
 
         private bool OE() 
@@ -2336,31 +2471,35 @@ namespace CShiftCompiler
 
         private bool func_prototypes() 
         {
-            if (tokens[index].GetClass() == "void" || tokens[index].GetClass() == "Data-Type")
+            if (tokens[index].GetClass() == "void" || tokens[index].GetClass() == "Data-Type" || tokens[index].GetClass() == "virtual" || 
+                tokens[index].GetClass() == "static" || tokens[index].GetClass() == "override" || tokens[index].GetClass() == "final")
             {
-                if (return_type())
+                if (func_choice()) 
                 {
-                    if (tokens[index].GetClass() == "ID")
+                    if (return_type())
                     {
-                        index++;
-
-                        if (tokens[index].GetClass() == "(")
+                        if (tokens[index].GetClass() == "ID")
                         {
                             index++;
 
-                            if (PL_def())
+                            if (tokens[index].GetClass() == "(")
                             {
-                                if (tokens[index].GetClass() == ")")
-                                {
-                                    index++;
+                                index++;
 
-                                    if (tokens[index].GetClass() == ";")
+                                if (PL_def())
+                                {
+                                    if (tokens[index].GetClass() == ")")
                                     {
                                         index++;
 
-                                        if (func_prototypes())
+                                        if (tokens[index].GetClass() == ";")
                                         {
-                                            return true;
+                                            index++;
+
+                                            if (func_prototypes())
+                                            {
+                                                return true;
+                                            }
                                         }
                                     }
                                 }
@@ -2373,6 +2512,47 @@ namespace CShiftCompiler
             else 
             {
                 if (tokens[index].GetClass() == "}") 
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool func_choice()
+        {
+            if (tokens[index].GetClass() == "virtual")
+            {
+                index++;
+
+                return true;
+            }
+
+            else if (tokens[index].GetClass() == "override")
+            {
+                index++;
+
+                return true;
+            }
+
+            else if (tokens[index].GetClass() == "final")
+            {
+                index++;
+
+                return true;
+            }
+
+            else if (tokens[index].GetClass() == "static")
+            {
+                index++;
+
+                return true;
+            }
+
+            else 
+            {
+                if (tokens[index].GetClass() == "Data-Type" || tokens[index].GetClass() == "void")
                 {
                     return true;
                 }
@@ -2395,6 +2575,269 @@ namespace CShiftCompiler
                 index++;
 
                 return true;
+            }
+
+            return false;
+        }
+
+        private bool class_def() 
+        {
+            if (tokens[index].GetClass() == "class" || tokens[index].GetClass() == "static" || tokens[index].GetClass() == "final" ||
+                tokens[index].GetClass() == "abstract") 
+            {
+                if (class_choice()) 
+                {
+                    if (tokens[index].GetClass() == "class") 
+                    {
+                        index++;
+
+                        if (tokens[index].GetClass() == "ID") 
+                        {
+                            index++;
+
+                            if (inheritance()) 
+                            {
+                                if (tokens[index].GetClass() == "{") 
+                                {
+                                    index++;
+
+                                    if (class_body()) 
+                                    {
+                                        if (tokens[index].GetClass() == "}") 
+                                        {
+                                            index++;
+
+                                            return true;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private bool class_choice()
+        {
+            if (tokens[index].GetClass() == "static")
+            {
+                index++;
+
+                return true;
+            }
+
+            else if (tokens[index].GetClass() == "abstract")
+            {
+                index++;
+
+                return true;
+            }
+
+            else if (tokens[index].GetClass() == "final")
+            {
+                index++;
+
+                return true;
+            }
+
+            else 
+            {
+                if (tokens[index].GetClass() == "class") 
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool class_body() 
+        {
+            if (tokens[index].GetClass() == "void" || tokens[index].GetClass() == "Data-Type" || tokens[index].GetClass() == "virtual" ||
+                tokens[index].GetClass() == "static" || tokens[index].GetClass() == "override" || tokens[index].GetClass() == "final")
+            {
+                if (func_choice())
+                {
+                    if (class_body1())
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            else if (tokens[index].GetClass() == "abstract")
+            {
+                index++;
+
+                if (return_type())
+                {
+                    if (tokens[index].GetClass() == "ID")
+                    {
+                        index++;
+
+                        if (tokens[index].GetClass() == "(")
+                        {
+                            index++;
+
+                            if (PL_def())
+                            {
+                                if (tokens[index].GetClass() == ")")
+                                {
+                                    index++;
+
+                                    if (tokens[index].GetClass() == ";")
+                                    {
+                                        index++;
+
+                                        if (class_body())
+                                        {
+                                            return true;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            else if (tokens[index].GetClass() == "interface")
+            {
+                if (interface_def())
+                {
+                    if (class_body())
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            else if (tokens[index].GetClass() == "class")
+            {
+                index++;
+
+                if (tokens[index].GetClass() == "ID")
+                {
+                    index++;
+
+                    if (inheritance())
+                    {
+                        if (tokens[index].GetClass() == "{")
+                        {
+                            index++;
+
+                            if (class_body())
+                            {
+                                if (tokens[index].GetClass() == "}")
+                                {
+                                    index++;
+
+                                    if (class_body())
+                                    {
+                                        return true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            else if (tokens[index].GetClass() == "const")
+            {
+                if (const_statement())
+                {
+                    if (class_body())
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            else if (tokens[index].GetClass() == "struct")
+            {
+                if (struct_def())
+                {
+                    if (class_body())
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            else 
+            {
+                if (tokens[index].GetClass() == "}") 
+                {
+                    return true;
+                }
+            }
+            
+            return false;
+        }
+
+        private bool class_body1()
+        {
+            if (tokens[index].GetClass() == "Data-Type")
+            {
+                index++;
+
+                if (tokens[index].GetClass() == "ID")
+                {
+                    index++;
+
+                    if (DT())
+                    {
+                        if (class_body())
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            else if (tokens[index].GetClass() == "void") 
+            {
+                index++;
+
+                if (tokens[index].GetClass() == "ID") 
+                {
+                    index++;
+
+                    if (tokens[index].GetClass() == "(") 
+                    {
+                        index++;
+
+                        if (PL_def()) 
+                        {
+                            if (tokens[index].GetClass() == ")") 
+                            {
+                                index++;
+
+                                if (tokens[index].GetClass() == "{") 
+                                {
+                                    index++;
+
+                                    if (MST()) 
+                                    {
+                                        if (tokens[index].GetClass() == "}") 
+                                        {
+                                            index++;
+
+                                            if (class_body()) 
+                                            {
+                                                return true;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             return false;
