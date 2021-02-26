@@ -100,21 +100,40 @@ namespace CShiftCompiler
             if (tokens[index].GetClass() == "class" || tokens[index].GetClass() == "abstract" || tokens[index].GetClass() == "static" ||
                 tokens[index].GetClass() == "final") 
             {
-                if (class_choice()) 
+                string category = "";
+
+                if (class_choice(ref category)) 
                 {
                     if (tokens[index].GetClass() == "class") 
                     {
                         index++;
 
+                        string type = "class";
+
                         if (tokens[index].GetClass() == "ID") 
                         {
+                            string name = tokens[index].GetValue();
+
                             index++;
 
-                            if (inheritance()) 
+                            string parent = "";
+
+                            if (inheritance(ref parent)) 
                             {
+                                List<DataTable> refDT = SemanticAnalyzer.Create_DT();
+
+                                if (!SemanticAnalyzer.Insert_MT(name, type, category, parent, refDT))
+                                {
+                                    Console.WriteLine("Semantic Error: Redeclaration of '" + name + "'!");
+                                }
+
                                 if (tokens[index].GetClass() == "{") 
                                 {
                                     index++;
+
+                                    SemanticAnalyzer.createScope();
+
+                                    //FT Pending
 
                                     if (tokens[index].GetClass() == "static") 
                                     {
@@ -148,6 +167,8 @@ namespace CShiftCompiler
 
                                                                     if (class_body()) 
                                                                     {
+                                                                        SemanticAnalyzer.destroyScope();
+
                                                                         if (tokens[index].GetClass() == "}") 
                                                                         {
                                                                             index++;
@@ -2058,11 +2079,26 @@ namespace CShiftCompiler
         {
             if (tokens[index].GetClass() == "struct") 
             {
+                string category = "general";
+
                 index++;
+
+                string type = "struct";
 
                 if (tokens[index].GetClass() == "ID") 
                 {
+                    string name = tokens[index].GetValue();
+
                     index++;
+
+                    string parent = "none";
+
+                    List<DataTable> refDT = SemanticAnalyzer.Create_DT();
+
+                    if (!SemanticAnalyzer.Insert_MT(name, type, category, parent, refDT))
+                    {
+                        Console.WriteLine("Semantic Error: Redeclaration of '" + name + "'!");
+                    }
 
                     if (struct_body())
                     {
@@ -2078,10 +2114,14 @@ namespace CShiftCompiler
         {
             if (tokens[index].GetClass() == "{")
             {
+                SemanticAnalyzer.createScope();
+
                 index++;
 
                 if (struct_content())
                 {
+                    SemanticAnalyzer.destroyScope();
+
                     if (tokens[index].GetClass() == "}") 
                     {
                         index++;
@@ -2404,14 +2444,29 @@ namespace CShiftCompiler
         {
             if (tokens[index].GetClass() == "interface") 
             {
+                string category = "general";
+
                 index++;
+
+                string type = "interface";
 
                 if (tokens[index].GetClass() == "ID") 
                 {
+                    string name = tokens[index].GetValue();
+
                     index++;
 
-                    if (inheritance()) 
+                    string parent = "";
+
+                    if (inheritance(ref parent)) 
                     {
+                        List<DataTable> refDT = SemanticAnalyzer.Create_DT();
+
+                        if (!SemanticAnalyzer.Insert_MT(name, type, category, parent, refDT))
+                        {
+                            Console.WriteLine("Semantic Error: Redeclaration of '" + name + "'!");
+                        }
+
                         if (tokens[index].GetClass() == "{") 
                         {
                             index++;
@@ -2433,7 +2488,7 @@ namespace CShiftCompiler
             return false;
         }
 
-        private bool inheritance() 
+        private bool inheritance(ref string parent) 
         {
             if (tokens[index].GetClass() == ":")
             {
@@ -2441,9 +2496,32 @@ namespace CShiftCompiler
 
                 if (tokens[index].GetClass() == "ID")
                 {
+                    string name = tokens[index].GetValue();
+
                     index++;
 
-                    if (inheritance2())
+                    string category = "";
+
+                    string type = SemanticAnalyzer.Lookup_MT(name, out category);
+
+                    if (type == String.Empty) 
+                    {
+                        Console.WriteLine("Semantic Error: Undeclared Identifier '" + name + "'!");
+                    }
+
+                    if (type == "struct") 
+                    {
+                        Console.WriteLine("Semantic Error: Class cannot be inherited from struct!");
+                    }
+
+                    if (type == "class" && category == "final") 
+                    {
+                        Console.WriteLine("Semantic Error: Final class cannot be inherited!");
+                    }
+
+                    parent = name;
+
+                    if (inheritance2(ref parent))
                     {
                         return true;
                     }
@@ -2461,7 +2539,7 @@ namespace CShiftCompiler
             return false;
         }
 
-        private bool inheritance2()
+        private bool inheritance2(ref string parent)
         {
             if (tokens[index].GetClass() == ",")
             {
@@ -2469,9 +2547,32 @@ namespace CShiftCompiler
 
                 if (tokens[index].GetClass() == "ID")
                 {
+                    string name = tokens[index].GetValue();
+
                     index++;
 
-                    if (inheritance2())
+                    string category = "";
+
+                    string type = SemanticAnalyzer.Lookup_MT(name, out category);
+
+                    if (type == String.Empty)
+                    {
+                        Console.WriteLine("Semantic Error: Undeclared Identifier '" + name + "'!");
+                    }
+
+                    if (type == "struct")
+                    {
+                        Console.WriteLine("Semantic Error: Class cannot be inherited from struct!");
+                    }
+
+                    if (type == "class")
+                    {
+                        Console.WriteLine("Semantic Error: Class must come first before any interface / Multiple classes cannot be inherited!");
+                    }
+
+                    parent = name;
+
+                    if (inheritance2(ref parent))
                     {
                         return true;
                     }
@@ -2605,24 +2706,43 @@ namespace CShiftCompiler
             if (tokens[index].GetClass() == "class" || tokens[index].GetClass() == "static" || tokens[index].GetClass() == "final" ||
                 tokens[index].GetClass() == "abstract") 
             {
-                if (class_choice()) 
+                string category = "";
+
+                if (class_choice(ref category)) 
                 {
                     if (tokens[index].GetClass() == "class") 
                     {
                         index++;
 
+                        string type = "class";
+
                         if (tokens[index].GetClass() == "ID") 
                         {
+                            string name = tokens[index].GetValue();
+
                             index++;
 
-                            if (inheritance()) 
+                            string parent = "";
+
+                            if (inheritance(ref parent)) 
                             {
+                                List<DataTable> refDT = SemanticAnalyzer.Create_DT();
+
+                                if (!SemanticAnalyzer.Insert_MT(name, type, category, parent, refDT)) 
+                                {
+                                    Console.WriteLine("Semantic Error: Redeclaration of '" + name + "'!");
+                                }
+
                                 if (tokens[index].GetClass() == "{") 
                                 {
                                     index++;
 
+                                    SemanticAnalyzer.createScope();
+
                                     if (class_body()) 
                                     {
+                                        SemanticAnalyzer.destroyScope();
+
                                         if (tokens[index].GetClass() == "}") 
                                         {
                                             index++;
@@ -2640,10 +2760,11 @@ namespace CShiftCompiler
             return false;
         }
 
-        private bool class_choice()
+        private bool class_choice(ref string category)
         {
             if (tokens[index].GetClass() == "static")
             {
+                category = "static";
                 index++;
 
                 return true;
@@ -2651,6 +2772,7 @@ namespace CShiftCompiler
 
             else if (tokens[index].GetClass() == "abstract")
             {
+                category = "abstract";
                 index++;
 
                 return true;
@@ -2658,6 +2780,7 @@ namespace CShiftCompiler
 
             else if (tokens[index].GetClass() == "final")
             {
+                category = "final";
                 index++;
 
                 return true;
@@ -2667,6 +2790,7 @@ namespace CShiftCompiler
             {
                 if (tokens[index].GetClass() == "class") 
                 {
+                    category = "general";
                     return true;
                 }
             }
@@ -2737,20 +2861,39 @@ namespace CShiftCompiler
 
             else if (tokens[index].GetClass() == "class")
             {
+                string category = "general";
+
                 index++;
+
+                string type = "class";
 
                 if (tokens[index].GetClass() == "ID")
                 {
+                    string name = tokens[index].GetValue();
+
                     index++;
 
-                    if (inheritance())
+                    string parent = "";
+
+                    if (inheritance(ref parent))
                     {
+                        List<DataTable> refDT = SemanticAnalyzer.Create_DT();
+
+                        if (!SemanticAnalyzer.Insert_MT(name, type, category, parent, refDT))
+                        {
+                            Console.WriteLine("Semantic Error: Redeclaration of '" + name + "'!");
+                        }
+
                         if (tokens[index].GetClass() == "{")
                         {
                             index++;
 
+                            SemanticAnalyzer.createScope();
+
                             if (class_body())
                             {
+                                SemanticAnalyzer.destroyScope();
+
                                 if (tokens[index].GetClass() == "}")
                                 {
                                     index++;

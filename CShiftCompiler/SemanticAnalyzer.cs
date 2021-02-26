@@ -8,14 +8,14 @@ namespace CShiftCompiler
 {
     class SemanticAnalyzer
     {
-        static List<MainTable> MT;
-        static List<FunctionTable> FT;
-        static Stack<int> scope;
+        static List<MainTable> MT = new List<MainTable>();
+        static List<FunctionTable> FT = new List<FunctionTable>();
+        static Stack<int> scope = new Stack<int>();
         static int scopeValue = 0;
 
-        BodyTable Create_DT() 
+        public static List<DataTable> Create_DT() 
         {
-            return new BodyTable();
+            return new List<DataTable>();
         }
 
         bool Insert_FT(string name, string type) 
@@ -46,7 +46,7 @@ namespace CShiftCompiler
             else return false;
         }
 
-        bool Insert_MT(string name, string type, string category, string parent, List<BodyTable> link) 
+        public static bool Insert_MT(string name, string type, string category, string parent, List<DataTable> link) 
         {
             bool isRedeclared = false;
 
@@ -76,7 +76,7 @@ namespace CShiftCompiler
             else return false;
         }
 
-        string Lookup_MT(string name, out string category) 
+        public static string Lookup_MT(string name, out string category) 
         {
             foreach (MainTable row in MT)
             {
@@ -91,12 +91,12 @@ namespace CShiftCompiler
             return "";
         }
 
-        void createScope() 
+        public static void createScope() 
         {
             scope.Push(++scopeValue);
         }
 
-        void destroyScope() 
+        public static void destroyScope() 
         {
             scope.Pop();
         }
@@ -120,10 +120,10 @@ namespace CShiftCompiler
         public string type { get; set; }
         public string category { get; set; }
         public string parent { get; set; }
-        public List<BodyTable> link { get; set; }
+        public List<DataTable> link { get; set; }
     }
 
-    class BodyTable 
+    class DataTable 
     {
         public string name { get; set; }
         public string type { get; set; }
