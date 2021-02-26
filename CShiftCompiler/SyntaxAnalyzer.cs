@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace CShiftCompiler
 {
     class SyntaxAnalyzer
-    {
+    {  
         static int index = 0;
         List<Token> tokens;
 
