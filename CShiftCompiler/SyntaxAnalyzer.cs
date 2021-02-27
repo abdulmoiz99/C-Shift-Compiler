@@ -140,7 +140,7 @@ namespace CShiftCompiler
 
                                     SemanticAnalyzer.createScope();
 
-                                    //FT Pending
+                                    // Lookup
 
                                     if (tokens[index].GetClass() == "static") 
                                     {
@@ -158,6 +158,8 @@ namespace CShiftCompiler
                                                 {
                                                     index++;
 
+                                                    SemanticAnalyzer.createScope();
+
                                                     if (tokens[index].GetClass() == ")") 
                                                     {
                                                         index++;
@@ -168,6 +170,8 @@ namespace CShiftCompiler
 
                                                             if (MST()) 
                                                             {
+                                                                SemanticAnalyzer.destroyScope();
+
                                                                 if (tokens[index].GetClass() == "}") 
                                                                 {
                                                                     index++;
@@ -760,6 +764,8 @@ namespace CShiftCompiler
                 {
                     index++;
 
+                    SemanticAnalyzer.createScope();
+
                     if (c1()) 
                     {
                         if (c2()) 
@@ -780,6 +786,8 @@ namespace CShiftCompiler
 
                                             if (MST()) 
                                             {
+                                                SemanticAnalyzer.destroyScope();
+
                                                 if (tokens[index].GetClass() == "}") 
                                                 {
                                                     index++;
@@ -808,6 +816,9 @@ namespace CShiftCompiler
                     return true;
                 }
             }
+
+
+            //Lookup Table
 
             else if (tokens[index].GetClass() == "ID")
             {
@@ -952,15 +963,24 @@ namespace CShiftCompiler
         {
             if (tokens[index].GetClass() == "var" || tokens[index].GetClass() == "Data-Type")
             {
-                if (type())
+                string T = "";
+
+                if (type(ref T))
                 {
                     if (tokens[index].GetClass() == "ID")
                     {
+                        string name = tokens[index].GetValue(); 
+
                         index++;
+
+                        if (!SemanticAnalyzer.Insert_FT(name, T)) 
+                        {
+                            SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "'!");
+                        }
 
                         if (initialization())
                         {
-                            if (list())
+                            if (list(T, "", null))
                             {
                                 return true;
                             }
@@ -1019,10 +1039,12 @@ namespace CShiftCompiler
             return false;
         }
 
-        private bool type() 
+        private bool type(ref string type) 
         {
             if (tokens[index].GetClass() == "var")
             {
+                type = "var";
+
                 index++;
 
                 return true;
@@ -1030,6 +1052,8 @@ namespace CShiftCompiler
 
             else if (tokens[index].GetClass() == "Data-Type") 
             {
+                type = tokens[index].GetValue();
+
                 index++;
 
                 return true;
@@ -1061,7 +1085,7 @@ namespace CShiftCompiler
             return false;
         }
 
-        private bool list() 
+        private bool list(string type, string typeModifier, List<DataTable> link) 
         {
             if (tokens[index].GetClass() == ";")
             {
@@ -1076,11 +1100,26 @@ namespace CShiftCompiler
 
                 if (tokens[index].GetClass() == "ID") 
                 {
+                    string name = tokens[index].GetValue();
+
                     index++;
+
+                    if (link != null) 
+                    {
+                        if (!SemanticAnalyzer.Insert_DT(name, type, typeModifier, link))
+                        {
+                            SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "'!");
+                        }
+                    }
+
+                    else if (!SemanticAnalyzer.Insert_FT(name, type))
+                    {
+                        SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "'!");
+                    }
 
                     if (initialization()) 
                     {
-                        if (list()) 
+                        if (list(type, typeModifier, link)) 
                         {
                             return true;
                         }
@@ -1099,17 +1138,30 @@ namespace CShiftCompiler
 
                 if (tokens[index].GetClass() == "(") 
                 {
+                    SemanticAnalyzer.createScope();
+
                     index++;
 
-                    if (ID()) 
+                    string type = "";
+
+                    if (ID(ref type)) 
                     {
                         if (tokens[index].GetClass() == "ID") 
                         {
+                            string name = tokens[index].GetValue();
+
                             index++;
+
+                            if (!SemanticAnalyzer.Insert_FT(name, type))
+                            {
+                                SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "'!");
+                            }
 
                             if (tokens[index].GetClass() == "in") 
                             {
                                 index++;
+
+                                //Lookup
 
                                 if (tokens[index].GetClass() == "ID") 
                                 {
@@ -1127,6 +1179,8 @@ namespace CShiftCompiler
 
                                                 if (MST()) 
                                                 {
+                                                    SemanticAnalyzer.destroyScope();
+
                                                     if (tokens[index].GetClass() == "}") 
                                                     {
                                                         index++;
@@ -1147,10 +1201,12 @@ namespace CShiftCompiler
             return false;
         }
 
-        private bool ID() 
+        private bool ID(ref string type) 
         {
             if (tokens[index].GetClass() == "Data-Type")
             {
+                type = tokens[index].GetValue();
+
                 index++;
 
                 return true;
@@ -1158,6 +1214,8 @@ namespace CShiftCompiler
 
             else if (tokens[index].GetClass() == "ID") 
             {
+                type = tokens[index].GetValue();
+
                 index++;
 
                 return true;
@@ -1184,10 +1242,14 @@ namespace CShiftCompiler
 
                             if (tokens[index].GetClass() == "{") 
                             {
+                                SemanticAnalyzer.createScope();
+
                                 index++;
 
                                 if (MST()) 
                                 {
+                                    SemanticAnalyzer.destroyScope();
+
                                     if (tokens[index].GetClass() == "}") 
                                     {
                                         index++;
@@ -1221,10 +1283,14 @@ namespace CShiftCompiler
 
                             if (tokens[index].GetClass() == "{") 
                             {
+                                SemanticAnalyzer.createScope();
+
                                 index++;
 
                                 if (MST()) 
                                 {
+                                    SemanticAnalyzer.destroyScope();
+
                                     if (tokens[index].GetClass() == "}") 
                                     {
                                         index++;
@@ -1262,10 +1328,14 @@ namespace CShiftCompiler
 
                             if (tokens[index].GetClass() == "{")
                             {
+                                SemanticAnalyzer.createScope();
+
                                 index++;
 
                                 if (MST())
                                 {
+                                    SemanticAnalyzer.destroyScope();
+
                                     if (tokens[index].GetClass() == "}")
                                     {
                                         index++;
@@ -1313,10 +1383,14 @@ namespace CShiftCompiler
 
                 if (tokens[index].GetClass() == "{") 
                 {
+                    SemanticAnalyzer.createScope();
+
                     index++;
 
                     if (MST()) 
                     {
+                        SemanticAnalyzer.destroyScope();
+
                         if (tokens[index].GetClass() == "}") 
                         {
                             index++;
@@ -1377,10 +1451,14 @@ namespace CShiftCompiler
 
                 if (tokens[index].GetClass() == "{") 
                 {
+                    SemanticAnalyzer.createScope();
+
                     index++;
 
                     if (MST())
                     {
+                        SemanticAnalyzer.destroyScope();
+
                         if (tokens[index].GetClass() == "}") 
                         {
                             index++;
@@ -1405,17 +1483,28 @@ namespace CShiftCompiler
 
                 if (tokens[index].GetClass() == "(") 
                 {
+                    SemanticAnalyzer.createScope();
+
                     index++;
 
                     if (tokens[index].GetClass() == "ID") 
                     {
+                        string type = tokens[index].GetValue();
+
                         index++;
 
-                        if (ID_opt()) 
+                        string name = ""; 
+
+                        if (ID_opt(ref name)) 
                         {
                             if (tokens[index].GetClass() == ")") 
                             {
                                 index++;
+
+                                if (!SemanticAnalyzer.Insert_FT(name, type))
+                                {
+                                    SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "'!");
+                                }
 
                                 if (tokens[index].GetClass() == "{") 
                                 {
@@ -1423,6 +1512,8 @@ namespace CShiftCompiler
 
                                     if (MST()) 
                                     {
+                                        SemanticAnalyzer.destroyScope();
+
                                         if (tokens[index].GetClass() == "}") 
                                         {
                                             index++;
@@ -1451,10 +1542,14 @@ namespace CShiftCompiler
 
                 if (tokens[index].GetClass() == "{")
                 {
+                    SemanticAnalyzer.createScope();
+
                     index++;
 
                     if (MST_finally())
                     {
+                        SemanticAnalyzer.destroyScope();
+
                         if (tokens[index].GetClass() == "}")
                         {
                             index++;
@@ -1507,10 +1602,12 @@ namespace CShiftCompiler
             return false;
         }
 
-        private bool ID_opt() 
+        private bool ID_opt(ref string name) 
         {
             if (tokens[index].GetClass() == "ID")
             {
+                name = tokens[index].GetValue();
+
                 index++;
 
                 return true;
@@ -1566,10 +1663,12 @@ namespace CShiftCompiler
             return false;
         }
 
-        private bool const_statement(ref string name, ref string type) 
+        private bool const_statement(ref string name, ref string type, List<DataTable> link) 
         {
             if (tokens[index].GetClass() == "const") 
             {
+                string typeModifier = "const";
+
                 index++;
 
                 if (tokens[index].GetClass() == "Data-Type") 
@@ -1586,7 +1685,7 @@ namespace CShiftCompiler
 
                         if (const_initialization()) 
                         {
-                            if (const_list()) 
+                            if (const_list(type, typeModifier, link)) 
                             {
                                 return true;
                             }
@@ -1613,7 +1712,7 @@ namespace CShiftCompiler
             return false;
         }
 
-        private bool const_list() 
+        private bool const_list(string type, string typeModifier, List<DataTable> link) 
         {
             if (tokens[index].GetClass() == ";")
             {
@@ -1628,11 +1727,26 @@ namespace CShiftCompiler
 
                 if (tokens[index].GetClass() == "ID") 
                 {
+                    string name = tokens[index].GetValue();
+
                     index++;
+
+                    if (link != null) 
+                    {
+                        if (!SemanticAnalyzer.Insert_DT(name, type, typeModifier, link))
+                        {
+                            SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "'!");
+                        }
+                    }
+
+                    else if (!SemanticAnalyzer.Insert_FT(name, "const " + type))
+                    {
+                        SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "'!");
+                    }
 
                     if (const_initialization()) 
                     {
-                        if (const_list()) 
+                        if (const_list(type, typeModifier, link)) 
                         {
                             return true;
                         }
@@ -1668,7 +1782,7 @@ namespace CShiftCompiler
             return false;
         }
 
-        private bool Z() 
+        private bool Z(string type) 
         {
             if (tokens[index].GetClass() == "(")
             {
@@ -1696,7 +1810,7 @@ namespace CShiftCompiler
                 {
                     index++;
 
-                    if (Z())
+                    if (Z(type))
                     {
                         return true;
                     }
@@ -1724,7 +1838,14 @@ namespace CShiftCompiler
 
             else if (tokens[index].GetClass() == "ID")
             {
+                string name = tokens[index].GetValue();
+
                 index++;
+
+                if (!SemanticAnalyzer.Insert_FT(name, type))
+                {
+                    SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "'!");
+                }
 
                 if (tokens[index].GetClass() == "=")
                 {
@@ -1792,7 +1913,7 @@ namespace CShiftCompiler
                 {
                     index++;
 
-                    if (Z()) 
+                    if (Z(String.Empty)) 
                     {
                         return true;
                     }
@@ -1814,15 +1935,26 @@ namespace CShiftCompiler
 
             else if (tokens[index].GetClass() == "var")
             {
+                string type = "var";
+
                 index++;
 
                 if (tokens[index].GetClass() == "ID")
                 {
+                    string name = tokens[index].GetValue();
+
                     index++;
+
+                    if (!SemanticAnalyzer.Insert_FT(name, type))
+                    {
+                        SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "'!");
+                    }
 
                     if (tokens[index].GetClass() == "=")
                     {
                         index++;
+
+                        //Lookup
 
                         if (init())
                         {
@@ -1839,15 +1971,24 @@ namespace CShiftCompiler
 
             else if (tokens[index].GetClass() == "Data-Type")
             {
+                string type = tokens[index].GetValue();
+
                 index++;
 
                 if (tokens[index].GetClass() == "ID")
                 {
+                    string name = tokens[index].GetValue();
+
                     index++;
+
+                    if (!SemanticAnalyzer.Insert_FT(name, type))
+                    {
+                        SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "'!");
+                    }
 
                     if (initialization())
                     {
-                        if (list())
+                        if (list(type, "", null))
                         {
                             return true;
                         }
@@ -1897,18 +2038,26 @@ namespace CShiftCompiler
 
             else if (tokens[index].GetClass() == "const")
             {
-                string name = "", type = ""; //Pending
-                if (const_statement(ref name, ref type))
+                string name = "", type = "";
+
+                if (const_statement(ref name, ref type, null))
                 {
+                    if (!SemanticAnalyzer.Insert_FT(name, "const " + type))
+                    {
+                        SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "'!");
+                    }
+
                     return true;
                 }
             }
 
             else if (tokens[index].GetClass() == "ID")
             {
+                string type = tokens[index].GetValue();
+
                 index++;
 
-                if (Z())
+                if (Z(type))
                 {
                     return true;
                 }
@@ -1965,15 +2114,26 @@ namespace CShiftCompiler
 
             else if (tokens[index].GetClass() == "var")
             {
+                string type = "var";
+
                 index++;
 
                 if (tokens[index].GetClass() == "ID")
                 {
+                    string name = tokens[index].GetValue();
+
                     index++;
+
+                    if (!SemanticAnalyzer.Insert_FT(name, type))
+                    {
+                        SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "'!");
+                    }
 
                     if (tokens[index].GetClass() == "=")
                     {
                         index++;
+
+                        //Lookup
 
                         if (init())
                         {
@@ -1990,15 +2150,24 @@ namespace CShiftCompiler
 
             else if (tokens[index].GetClass() == "Data-Type")
             {
+                string type = tokens[index].GetValue();
+
                 index++;
 
                 if (tokens[index].GetClass() == "ID")
                 {
+                    string name = tokens[index].GetValue();
+
                     index++;
+
+                    if (!SemanticAnalyzer.Insert_FT(name, type))
+                    {
+                        SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "'!");
+                    }
 
                     if (initialization())
                     {
-                        if (list())
+                        if (list(type, "", null))
                         {
                             return true;
                         }
@@ -2048,18 +2217,26 @@ namespace CShiftCompiler
 
             else if (tokens[index].GetClass() == "const")
             {
-                string name = "", type = ""; //Pending
-                if (const_statement(ref name, ref type))
+                string name = "", type = "";
+
+                if (const_statement(ref name, ref type, null))
                 {
+                    if (!SemanticAnalyzer.Insert_FT(name, "const " + type))
+                    {
+                        SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "'!");
+                    }
+
                     return true;
                 }
             }
 
             else if (tokens[index].GetClass() == "ID")
             {
+                string type = tokens[index].GetValue();
+
                 index++;
 
-                if (Z())
+                if (Z(type))
                 {
                     return true;
                 }
@@ -2154,7 +2331,7 @@ namespace CShiftCompiler
             {
                 string name = "", type = "", typeModifier = "";
 
-                if (struct_content2(ref name, ref type, ref typeModifier))
+                if (struct_content2(ref name, ref type, ref typeModifier, link))
                 {
                     if (!SemanticAnalyzer.Insert_DT(name, type, typeModifier, link))
                     {
@@ -2179,13 +2356,13 @@ namespace CShiftCompiler
             return false;
         }
 
-        private bool struct_content2(ref string name, ref string type, ref string typeModifer)
+        private bool struct_content2(ref string name, ref string type, ref string typeModifer, List<DataTable> link)
         {
             if (tokens[index].GetClass() == "const")
             {
                 typeModifer = "const";
 
-                if (const_statement(ref name, ref type))
+                if (const_statement(ref name, ref type, link))
                 {
                     return true;
                 }
@@ -2205,7 +2382,7 @@ namespace CShiftCompiler
 
                 if (static_choice(ref typeModifer)) 
                 {
-                    if (struct_content3(ref name, ref type)) 
+                    if (struct_content3(ref name, ref type, typeModifer, link)) 
                     {
                         return true;
                     }
@@ -2214,7 +2391,7 @@ namespace CShiftCompiler
             return false;
         }
 
-        private bool struct_content3(ref string name, ref string type)
+        private bool struct_content3(ref string name, ref string type, string typeModifier, List<DataTable> link)
         {
             if (tokens[index].GetClass() == "Data-Type")
             {
@@ -2228,7 +2405,7 @@ namespace CShiftCompiler
 
                     index++;
 
-                    if (DT(ref type))
+                    if (DT(ref type, typeModifier, link))
                     {
                         return true;
                     }
@@ -2249,6 +2426,8 @@ namespace CShiftCompiler
 
                     if (tokens[index].GetClass() == "(") 
                     {
+                        SemanticAnalyzer.createScope();
+
                         index++;
 
                         if (PL_def(ref type)) 
@@ -2259,7 +2438,6 @@ namespace CShiftCompiler
 
                                 if (tokens[index].GetClass() == "{") 
                                 {
-                                    SemanticAnalyzer.createScope();
 
                                     index++;
 
@@ -2306,13 +2484,13 @@ namespace CShiftCompiler
             return false;
         }
 
-        private bool DT(ref string returnType) 
+        private bool DT(ref string returnType, string typeModifier, List<DataTable> link) 
         {
             if (tokens[index].GetClass() == "=" || tokens[index].GetClass() == "," || tokens[index].GetClass() == ";")
             {
                 if (initialization())
                 {
-                    if (list())
+                    if (list(returnType, typeModifier, link))
                     {
                         return true;
                     }
@@ -2323,16 +2501,16 @@ namespace CShiftCompiler
             {
                 index++;
 
+                SemanticAnalyzer.createScope();
+
                 if (PL_def(ref returnType)) 
                 {
                     if (tokens[index].GetClass() == ")") 
                     {
-                        index++;
+                        index++;                      
 
                         if (tokens[index].GetClass() == "{") 
                         {
-                            SemanticAnalyzer.createScope();
-
                             index++;
 
                             if (MST()) 
@@ -2389,7 +2567,14 @@ namespace CShiftCompiler
                     {
                         if (tokens[index].GetClass() == "ID")
                         {
+                            string name = tokens[index].GetValue();
+
                             index++;
+
+                            if (!SemanticAnalyzer.Insert_FT(name, parameters)) 
+                            {
+                                SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "'!");
+                            }
 
                             if (PL_def2(ref parameters))
                             {
@@ -2427,9 +2612,18 @@ namespace CShiftCompiler
                 {
                     if (P_choice(ref parameters))
                     {
+                        string[] param = parameters.Split(','); 
+
                         if (tokens[index].GetClass() == "ID")
                         {
+                            string name = tokens[index].GetValue();
+
                             index++;
+
+                            if (!SemanticAnalyzer.Insert_FT(name, param[param.Length - 1]))
+                            {
+                                SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "'!");
+                            }
 
                             if (PL_def2(ref parameters))
                             {
@@ -3012,7 +3206,7 @@ namespace CShiftCompiler
                 string type = "", name = "";
                 string typeModifier = "const";
 
-                if (const_statement(ref name, ref type))
+                if (const_statement(ref name, ref type, link))
                 {
                     if (!SemanticAnalyzer.Insert_DT(name, type, typeModifier, link))
                     {
@@ -3062,7 +3256,7 @@ namespace CShiftCompiler
 
                     index++;
 
-                    if (DT(ref returnType))
+                    if (DT(ref returnType, typeModifier, refDT))
                     {
                         if (!SemanticAnalyzer.Insert_DT(name, returnType, typeModifier, refDT)) 
                         {
@@ -3087,11 +3281,13 @@ namespace CShiftCompiler
                 {
                     string name = tokens[index].GetValue();
 
-                    index++;
+                    index++;                   
 
                     if (tokens[index].GetClass() == "(") 
                     {
                         index++;
+
+                        SemanticAnalyzer.createScope();
 
                         if (PL_def(ref returnType)) 
                         {
@@ -3106,8 +3302,6 @@ namespace CShiftCompiler
 
                                 if (tokens[index].GetClass() == "{") 
                                 {
-                                    SemanticAnalyzer.createScope();
-
                                     index++;
 
                                     if (MST()) 

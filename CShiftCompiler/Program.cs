@@ -7,7 +7,7 @@ namespace CShiftCompiler
     static class Program
     {
         static void Main()
-        {
+        {        
             LexicalAnalyzer lexicalAnalyzer = new LexicalAnalyzer();
             SyntaxAnalyzer syntaxAnalyzer;
 

@@ -16,13 +16,13 @@ namespace CShiftCompiler
             return new List<DataTable>();
         }
 
-        bool Insert_FT(string name, string type) 
+        public static bool Insert_FT(string name, string type) 
         {
             bool isRedeclared = false;
 
             foreach (FunctionTable row in FT)
             {
-                if (row.name == name && row.scope == scopeValue)
+                if (row.name == name && row.scope == scope.Peek())
                 {
                     isRedeclared = true;
                     break;
@@ -46,6 +46,8 @@ namespace CShiftCompiler
 
         public static bool Insert_DT(string name, string type, string typeModifier, List<DataTable> link) 
         {
+            if (link == null) return true;
+
             bool isRedeclared = false;
 
             foreach (DataTable row in link)
