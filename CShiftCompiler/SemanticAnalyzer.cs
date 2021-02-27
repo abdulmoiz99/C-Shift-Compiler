@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CShiftCompiler
 {
@@ -12,6 +9,7 @@ namespace CShiftCompiler
         static List<FunctionTable> FT = new List<FunctionTable>();
         static Stack<int> scope = new Stack<int>();
         static int scopeValue = 0;
+        public static List<string> errors = new List<string>();
 
         public static List<DataTable> Create_DT() 
         {
@@ -40,6 +38,45 @@ namespace CShiftCompiler
                 tableRow.scope = scopeValue;
 
                 FT.Add(tableRow);
+                return true;
+            }
+
+            else return false;
+        }
+
+        public static bool Insert_DT(string name, string type, string typeModifier, List<DataTable> link) 
+        {
+            bool isRedeclared = false;
+
+            foreach (DataTable row in link)
+            {
+                if (row.name == name && (!row.type.Contains("->")))
+                {
+                    isRedeclared = true;
+                    break;
+                }
+                else if (row.name == name && row.type.Contains("->")) 
+                {
+                    string rowParameters = row.type.Substring(0, row.type.IndexOf("->"));
+                    string Parameters = type.Substring(0, type.IndexOf("->"));
+
+                    if (rowParameters == Parameters) 
+                    {
+                        isRedeclared = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!isRedeclared)
+            {
+                DataTable tableRow = new DataTable();
+
+                tableRow.name = name;
+                tableRow.type = type;
+                tableRow.typeModifier = typeModifier;
+
+                link.Add(tableRow);
                 return true;
             }
 

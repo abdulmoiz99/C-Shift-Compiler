@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CShiftCompiler
 {
@@ -18,7 +15,17 @@ namespace CShiftCompiler
             {
                 if (tokens[index].GetClass() == "$") // Input is completely parsed.
                 {
-                    Console.WriteLine("Source code executed successfully!");
+                    if (SemanticAnalyzer.errors.Count <= 0)
+                    {
+                        Console.WriteLine("Source code executed successfully!");
+                    }
+                    else 
+                    {
+                        foreach (string error in SemanticAnalyzer.errors) 
+                        {
+                            Console.WriteLine(error);
+                        }
+                    }
                 }
                 else
                 {
@@ -124,7 +131,7 @@ namespace CShiftCompiler
 
                                 if (!SemanticAnalyzer.Insert_MT(name, type, category, parent, refDT))
                                 {
-                                    Console.WriteLine("Semantic Error: Redeclaration of '" + name + "'!");
+                                    SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of class '" + name + "'!");
                                 }
 
                                 if (tokens[index].GetClass() == "{") 
@@ -165,7 +172,7 @@ namespace CShiftCompiler
                                                                 {
                                                                     index++;
 
-                                                                    if (class_body()) 
+                                                                    if (class_body(ref refDT)) 
                                                                     {
                                                                         SemanticAnalyzer.destroyScope();
 
@@ -1559,7 +1566,7 @@ namespace CShiftCompiler
             return false;
         }
 
-        private bool const_statement() 
+        private bool const_statement(ref string name, ref string type) 
         {
             if (tokens[index].GetClass() == "const") 
             {
@@ -1567,10 +1574,14 @@ namespace CShiftCompiler
 
                 if (tokens[index].GetClass() == "Data-Type") 
                 {
+                    type = tokens[index].GetValue();
+
                     index++;
 
                     if (tokens[index].GetClass() == "ID") 
                     {
+                        name = tokens[index].GetValue();
+
                         index++;
 
                         if (const_initialization()) 
@@ -1886,7 +1897,8 @@ namespace CShiftCompiler
 
             else if (tokens[index].GetClass() == "const")
             {
-                if (const_statement())
+                string name = "", type = ""; //Pending
+                if (const_statement(ref name, ref type))
                 {
                     return true;
                 }
@@ -2036,7 +2048,8 @@ namespace CShiftCompiler
 
             else if (tokens[index].GetClass() == "const")
             {
-                if (const_statement())
+                string name = "", type = ""; //Pending
+                if (const_statement(ref name, ref type))
                 {
                     return true;
                 }
@@ -2097,10 +2110,10 @@ namespace CShiftCompiler
 
                     if (!SemanticAnalyzer.Insert_MT(name, type, category, parent, refDT))
                     {
-                        Console.WriteLine("Semantic Error: Redeclaration of '" + name + "'!");
+                        SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of struct '" + name + "'!");
                     }
 
-                    if (struct_body())
+                    if (struct_body(ref refDT))
                     {
                         return true;
                     }
@@ -2110,7 +2123,7 @@ namespace CShiftCompiler
             return false;
         }
 
-        private bool struct_body()
+        private bool struct_body(ref List<DataTable> link)
         {
             if (tokens[index].GetClass() == "{")
             {
@@ -2118,7 +2131,7 @@ namespace CShiftCompiler
 
                 index++;
 
-                if (struct_content())
+                if (struct_content(ref link))
                 {
                     SemanticAnalyzer.destroyScope();
 
@@ -2134,14 +2147,21 @@ namespace CShiftCompiler
             return false;
         }
 
-        private bool struct_content()
+        private bool struct_content(ref List<DataTable> link)
         {
             if (tokens[index].GetClass() == "Data-Type" || tokens[index].GetClass() == "const" || tokens[index].GetClass() == "static" ||
                 tokens[index].GetClass() == "void" || tokens[index].GetClass() == "struct")
             {
-                if (struct_content2())
+                string name = "", type = "", typeModifier = "";
+
+                if (struct_content2(ref name, ref type, ref typeModifier))
                 {
-                    if (struct_content())
+                    if (!SemanticAnalyzer.Insert_DT(name, type, typeModifier, link))
+                    {
+                        SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "'!");
+                    }
+
+                    if (struct_content(ref link))
                     {
                         return true;
                     }
@@ -2159,11 +2179,13 @@ namespace CShiftCompiler
             return false;
         }
 
-        private bool struct_content2()
+        private bool struct_content2(ref string name, ref string type, ref string typeModifer)
         {
             if (tokens[index].GetClass() == "const")
             {
-                if (const_statement())
+                typeModifer = "const";
+
+                if (const_statement(ref name, ref type))
                 {
                     return true;
                 }
@@ -2179,9 +2201,11 @@ namespace CShiftCompiler
 
             else if (tokens[index].GetClass() == "static" || tokens[index].GetClass() == "Data-Type" || tokens[index].GetClass() == "void") 
             {
-                if (static_choice()) 
+                typeModifer = "null";
+
+                if (static_choice(ref typeModifer)) 
                 {
-                    if (struct_content3()) 
+                    if (struct_content3(ref name, ref type)) 
                     {
                         return true;
                     }
@@ -2190,17 +2214,21 @@ namespace CShiftCompiler
             return false;
         }
 
-        private bool struct_content3()
+        private bool struct_content3(ref string name, ref string type)
         {
             if (tokens[index].GetClass() == "Data-Type")
             {
+                type = tokens[index].GetValue();
+
                 index++;
 
                 if (tokens[index].GetClass() == "ID")
                 {
+                    name = tokens[index].GetValue();
+
                     index++;
 
-                    if (DT())
+                    if (DT(ref type))
                     {
                         return true;
                     }
@@ -2209,17 +2237,21 @@ namespace CShiftCompiler
 
             else if (tokens[index].GetClass() == "void") 
             {
+                type = "void";
+
                 index++;
 
                 if (tokens[index].GetClass() == "ID") 
                 {
+                    name = tokens[index].GetValue();
+
                     index++;
 
                     if (tokens[index].GetClass() == "(") 
                     {
                         index++;
 
-                        if (PL_def()) 
+                        if (PL_def(ref type)) 
                         {
                             if (tokens[index].GetClass() == ")") 
                             {
@@ -2227,10 +2259,14 @@ namespace CShiftCompiler
 
                                 if (tokens[index].GetClass() == "{") 
                                 {
+                                    SemanticAnalyzer.createScope();
+
                                     index++;
 
                                     if (MST()) 
                                     {
+                                        SemanticAnalyzer.destroyScope();
+
                                         if (tokens[index].GetClass() == "}") 
                                         {
                                             index++;
@@ -2248,10 +2284,12 @@ namespace CShiftCompiler
             return false;
         }
 
-        private bool static_choice() 
+        private bool static_choice(ref string typeModifer) 
         {
             if (tokens[index].GetClass() == "static")
             {
+                typeModifer = "static";
+
                 index++;
 
                 return true;
@@ -2268,7 +2306,7 @@ namespace CShiftCompiler
             return false;
         }
 
-        private bool DT() 
+        private bool DT(ref string returnType) 
         {
             if (tokens[index].GetClass() == "=" || tokens[index].GetClass() == "," || tokens[index].GetClass() == ";")
             {
@@ -2285,7 +2323,7 @@ namespace CShiftCompiler
             {
                 index++;
 
-                if (PL_def()) 
+                if (PL_def(ref returnType)) 
                 {
                     if (tokens[index].GetClass() == ")") 
                     {
@@ -2293,12 +2331,16 @@ namespace CShiftCompiler
 
                         if (tokens[index].GetClass() == "{") 
                         {
+                            SemanticAnalyzer.createScope();
+
                             index++;
 
                             if (MST()) 
                             {
                                 if (return_statement()) 
                                 {
+                                    SemanticAnalyzer.destroyScope();
+
                                     if (tokens[index].GetClass() == "}") 
                                     {
                                         index++;
@@ -2335,20 +2377,24 @@ namespace CShiftCompiler
             return false;
         }
 
-        private bool PL_def() 
+        private bool PL_def(ref string returnType) 
         {
             if (tokens[index].GetClass() == "ref" || tokens[index].GetClass() == "Data-Type" || tokens[index].GetClass() == "ID")
             {
-                if (ref_choice())
+                string parameters = "";
+
+                if (ref_choice(ref parameters))
                 {
-                    if (P_choice())
+                    if (P_choice(ref parameters))
                     {
                         if (tokens[index].GetClass() == "ID")
                         {
                             index++;
 
-                            if (PL_def2())
+                            if (PL_def2(ref parameters))
                             {
+                                returnType = parameters + "->" + returnType;
+
                                 return true;
                             }
                         }
@@ -2360,6 +2406,8 @@ namespace CShiftCompiler
             {
                 if (tokens[index].GetClass() == ")") 
                 {
+                    returnType = "->" + returnType;
+
                     return true;
                 }
             }
@@ -2367,21 +2415,23 @@ namespace CShiftCompiler
             return false;
         }
 
-        private bool PL_def2() 
+        private bool PL_def2(ref string parameters) 
         {
             if (tokens[index].GetClass() == ",")
             {
+                parameters += ",";
+
                 index++;
 
-                if (ref_choice())
+                if (ref_choice(ref parameters))
                 {
-                    if (P_choice())
+                    if (P_choice(ref parameters))
                     {
                         if (tokens[index].GetClass() == "ID")
                         {
                             index++;
 
-                            if (PL_def2())
+                            if (PL_def2(ref parameters))
                             {
                                 return true;
                             }
@@ -2401,10 +2451,12 @@ namespace CShiftCompiler
             return false;
         }
 
-        private bool P_choice()
+        private bool P_choice(ref string parameters)
         {
             if (tokens[index].GetClass() == "ID") 
             {
+                parameters += tokens[index].GetValue();
+
                 index++;
 
                 return true;
@@ -2412,6 +2464,8 @@ namespace CShiftCompiler
 
             else if (tokens[index].GetClass() == "Data-Type") 
             {
+                parameters += tokens[index].GetValue();
+
                 index++;
 
                 return true;
@@ -2420,10 +2474,12 @@ namespace CShiftCompiler
             return false;
         }
 
-        private bool ref_choice() 
+        private bool ref_choice(ref string parameters) 
         {
             if (tokens[index].GetClass() == "ref")
             {
+                parameters += "ref ";
+
                 index++;
 
                 return true;
@@ -2464,15 +2520,19 @@ namespace CShiftCompiler
 
                         if (!SemanticAnalyzer.Insert_MT(name, type, category, parent, refDT))
                         {
-                            Console.WriteLine("Semantic Error: Redeclaration of '" + name + "'!");
+                            SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of interface '" + name + "'!");
                         }
 
                         if (tokens[index].GetClass() == "{") 
                         {
+                            SemanticAnalyzer.createScope();
+
                             index++;
 
-                            if (func_prototypes()) 
+                            if (func_prototypes(ref refDT)) 
                             {
+                                SemanticAnalyzer.destroyScope();
+
                                 if (tokens[index].GetClass() == "}") 
                                 {
                                     index++;
@@ -2506,17 +2566,17 @@ namespace CShiftCompiler
 
                     if (type == String.Empty) 
                     {
-                        Console.WriteLine("Semantic Error: Undeclared Identifier '" + name + "'!");
+                        SemanticAnalyzer.errors.Add("Semantic Error: Undeclared Identifier '" + name + "'!");
                     }
 
                     if (type == "struct") 
                     {
-                        Console.WriteLine("Semantic Error: Class cannot be inherited from struct!");
+                        SemanticAnalyzer.errors.Add("Semantic Error: Class cannot be inherited from struct!");
                     }
 
                     if (type == "class" && category == "final") 
                     {
-                        Console.WriteLine("Semantic Error: Final class cannot be inherited!");
+                        SemanticAnalyzer.errors.Add("Semantic Error: Final class cannot be inherited!");
                     }
 
                     parent = name;
@@ -2557,17 +2617,17 @@ namespace CShiftCompiler
 
                     if (type == String.Empty)
                     {
-                        Console.WriteLine("Semantic Error: Undeclared Identifier '" + name + "'!");
+                        SemanticAnalyzer.errors.Add("Semantic Error: Undeclared Identifier '" + name + "'!");
                     }
 
                     if (type == "struct")
                     {
-                        Console.WriteLine("Semantic Error: Class cannot be inherited from struct!");
+                        SemanticAnalyzer.errors.Add("Semantic Error: Class cannot be inherited from struct!");
                     }
 
                     if (type == "class")
                     {
-                        Console.WriteLine("Semantic Error: Class must come first before any interface / Multiple classes cannot be inherited!");
+                        SemanticAnalyzer.errors.Add("Semantic Error: Class must come first before any interface / Multiple classes cannot be inherited!");
                     }
 
                     parent = name;
@@ -2590,34 +2650,45 @@ namespace CShiftCompiler
             return false;
         }
 
-        private bool func_prototypes() 
+        private bool func_prototypes(ref List<DataTable> link) 
         {
             if (tokens[index].GetClass() == "void" || tokens[index].GetClass() == "Data-Type" || tokens[index].GetClass() == "virtual" || 
                 tokens[index].GetClass() == "static" || tokens[index].GetClass() == "override" || tokens[index].GetClass() == "final")
             {
-                if (func_choice()) 
+                string typeModifier = "";
+
+                if (func_choice(ref typeModifier)) 
                 {
-                    if (return_type())
+                    string type = "";
+
+                    if (return_type(ref type))
                     {
                         if (tokens[index].GetClass() == "ID")
                         {
+                            string name = tokens[index].GetValue();
+
                             index++;
 
                             if (tokens[index].GetClass() == "(")
                             {
                                 index++;
 
-                                if (PL_def())
+                                if (PL_def(ref type))
                                 {
                                     if (tokens[index].GetClass() == ")")
                                     {
                                         index++;
 
+                                        if (!SemanticAnalyzer.Insert_DT(name, type, typeModifier, link))
+                                        {
+                                            SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "'!");
+                                        }
+
                                         if (tokens[index].GetClass() == ";")
                                         {
                                             index++;
 
-                                            if (func_prototypes())
+                                            if (func_prototypes(ref link))
                                             {
                                                 return true;
                                             }
@@ -2641,10 +2712,12 @@ namespace CShiftCompiler
             return false;
         }
 
-        private bool func_choice()
+        private bool func_choice(ref string typeModifier)
         {
             if (tokens[index].GetClass() == "virtual")
             {
+                typeModifier = "virtual";
+
                 index++;
 
                 return true;
@@ -2652,6 +2725,8 @@ namespace CShiftCompiler
 
             else if (tokens[index].GetClass() == "override")
             {
+                typeModifier = "override";
+
                 index++;
 
                 return true;
@@ -2659,6 +2734,8 @@ namespace CShiftCompiler
 
             else if (tokens[index].GetClass() == "final")
             {
+                typeModifier = "final";
+
                 index++;
 
                 return true;
@@ -2666,6 +2743,8 @@ namespace CShiftCompiler
 
             else if (tokens[index].GetClass() == "static")
             {
+                typeModifier = "static";
+
                 index++;
 
                 return true;
@@ -2673,6 +2752,8 @@ namespace CShiftCompiler
 
             else 
             {
+                typeModifier = "null";
+
                 if (tokens[index].GetClass() == "Data-Type" || tokens[index].GetClass() == "void")
                 {
                     return true;
@@ -2682,10 +2763,12 @@ namespace CShiftCompiler
             return false;
         }
 
-        private bool return_type()
+        private bool return_type(ref string type)
         {
             if (tokens[index].GetClass() == "void")
             {
+                type = "void";
+
                 index++;
 
                 return true;
@@ -2693,6 +2776,8 @@ namespace CShiftCompiler
 
             else if (tokens[index].GetClass() == "Data-Type") 
             {
+                type = tokens[index].GetValue();
+
                 index++;
 
                 return true;
@@ -2730,7 +2815,7 @@ namespace CShiftCompiler
 
                                 if (!SemanticAnalyzer.Insert_MT(name, type, category, parent, refDT)) 
                                 {
-                                    Console.WriteLine("Semantic Error: Redeclaration of '" + name + "'!");
+                                    SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of class '" + name + "'!");
                                 }
 
                                 if (tokens[index].GetClass() == "{") 
@@ -2739,7 +2824,7 @@ namespace CShiftCompiler
 
                                     SemanticAnalyzer.createScope();
 
-                                    if (class_body()) 
+                                    if (class_body(ref refDT)) 
                                     {
                                         SemanticAnalyzer.destroyScope();
 
@@ -2798,14 +2883,16 @@ namespace CShiftCompiler
             return false;
         }
 
-        private bool class_body() 
+        private bool class_body(ref List<DataTable> link) 
         {
             if (tokens[index].GetClass() == "void" || tokens[index].GetClass() == "Data-Type" || tokens[index].GetClass() == "virtual" ||
                 tokens[index].GetClass() == "static" || tokens[index].GetClass() == "override" || tokens[index].GetClass() == "final")
             {
-                if (func_choice())
+                string typeModifier = "";
+
+                if (func_choice(ref typeModifier))
                 {
-                    if (class_body1())
+                    if (class_body1(typeModifier, link))
                     {
                         return true;
                     }
@@ -2814,29 +2901,40 @@ namespace CShiftCompiler
 
             else if (tokens[index].GetClass() == "abstract")
             {
+                string typeModifier = "abstract";
+
                 index++;
 
-                if (return_type())
+                string type = "";
+
+                if (return_type(ref type))
                 {
                     if (tokens[index].GetClass() == "ID")
                     {
+                        string name = tokens[index].GetValue();
+
                         index++;
 
                         if (tokens[index].GetClass() == "(")
                         {
                             index++;
 
-                            if (PL_def())
+                            if (PL_def(ref type))
                             {
                                 if (tokens[index].GetClass() == ")")
                                 {
                                     index++;
 
+                                    if (!SemanticAnalyzer.Insert_DT(name, type, typeModifier, link)) 
+                                    {
+                                        SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "'!");
+                                    }
+
                                     if (tokens[index].GetClass() == ";")
                                     {
                                         index++;
 
-                                        if (class_body())
+                                        if (class_body(ref link))
                                         {
                                             return true;
                                         }
@@ -2852,7 +2950,7 @@ namespace CShiftCompiler
             {
                 if (interface_def())
                 {
-                    if (class_body())
+                    if (class_body(ref link))
                     {
                         return true;
                     }
@@ -2881,7 +2979,7 @@ namespace CShiftCompiler
 
                         if (!SemanticAnalyzer.Insert_MT(name, type, category, parent, refDT))
                         {
-                            Console.WriteLine("Semantic Error: Redeclaration of '" + name + "'!");
+                            SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of class '" + name + "'!");
                         }
 
                         if (tokens[index].GetClass() == "{")
@@ -2890,7 +2988,7 @@ namespace CShiftCompiler
 
                             SemanticAnalyzer.createScope();
 
-                            if (class_body())
+                            if (class_body(ref refDT))
                             {
                                 SemanticAnalyzer.destroyScope();
 
@@ -2898,7 +2996,7 @@ namespace CShiftCompiler
                                 {
                                     index++;
 
-                                    if (class_body())
+                                    if (class_body(ref link))
                                     {
                                         return true;
                                     }
@@ -2911,9 +3009,17 @@ namespace CShiftCompiler
 
             else if (tokens[index].GetClass() == "const")
             {
-                if (const_statement())
+                string type = "", name = "";
+                string typeModifier = "const";
+
+                if (const_statement(ref name, ref type))
                 {
-                    if (class_body())
+                    if (!SemanticAnalyzer.Insert_DT(name, type, typeModifier, link))
+                    {
+                        SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "'!");
+                    }
+
+                    if (class_body(ref link))
                     {
                         return true;
                     }
@@ -2924,7 +3030,7 @@ namespace CShiftCompiler
             {
                 if (struct_def())
                 {
-                    if (class_body())
+                    if (class_body(ref link))
                     {
                         return true;
                     }
@@ -2942,19 +3048,28 @@ namespace CShiftCompiler
             return false;
         }
 
-        private bool class_body1()
+        private bool class_body1(string typeModifier, List<DataTable> refDT)
         {
             if (tokens[index].GetClass() == "Data-Type")
             {
+                string returnType = tokens[index].GetValue();
+
                 index++;
 
                 if (tokens[index].GetClass() == "ID")
                 {
+                    string name = tokens[index].GetValue();
+
                     index++;
 
-                    if (DT())
+                    if (DT(ref returnType))
                     {
-                        if (class_body())
+                        if (!SemanticAnalyzer.Insert_DT(name, returnType, typeModifier, refDT)) 
+                        {
+                            SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "'!");
+                        }
+
+                        if (class_body(ref refDT))
                         {
                             return true;
                         }
@@ -2964,33 +3079,46 @@ namespace CShiftCompiler
 
             else if (tokens[index].GetClass() == "void") 
             {
+                string returnType = "void";
+
                 index++;
 
                 if (tokens[index].GetClass() == "ID") 
                 {
+                    string name = tokens[index].GetValue();
+
                     index++;
 
                     if (tokens[index].GetClass() == "(") 
                     {
                         index++;
 
-                        if (PL_def()) 
+                        if (PL_def(ref returnType)) 
                         {
                             if (tokens[index].GetClass() == ")") 
                             {
+                                if (!SemanticAnalyzer.Insert_DT(name, returnType, typeModifier, refDT))
+                                {
+                                    SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "'!");
+                                }
+
                                 index++;
 
                                 if (tokens[index].GetClass() == "{") 
                                 {
+                                    SemanticAnalyzer.createScope();
+
                                     index++;
 
                                     if (MST()) 
                                     {
+                                        SemanticAnalyzer.destroyScope();
+
                                         if (tokens[index].GetClass() == "}") 
                                         {
                                             index++;
 
-                                            if (class_body()) 
+                                            if (class_body(ref refDT)) 
                                             {
                                                 return true;
                                             }
