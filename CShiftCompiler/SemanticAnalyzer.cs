@@ -11,12 +11,12 @@ namespace CShiftCompiler
         static int scopeValue = 0;
         public static List<string> errors = new List<string>();
 
-        public static List<DataTable> Create_DT() 
+        public static List<DataTable> Create_DT()
         {
             return new List<DataTable>();
         }
 
-        public static bool Insert_FT(string name, string type) 
+        public static bool Insert_FT(string name, string type)
         {
             bool isRedeclared = false;
 
@@ -44,7 +44,7 @@ namespace CShiftCompiler
             else return false;
         }
 
-        public static bool Insert_DT(string name, string type, string typeModifier, List<DataTable> link) 
+        public static bool Insert_DT(string name, string type, string typeModifier, List<DataTable> link)
         {
             if (link == null) return true;
 
@@ -88,20 +88,20 @@ namespace CShiftCompiler
             else return false;
         }
 
-        public static bool Insert_MT(string name, string type, string category, string parent, List<DataTable> link) 
+        public static bool Insert_MT(string name, string type, string category, string parent, List<DataTable> link)
         {
             bool isRedeclared = false;
 
-            foreach (MainTable row in MT) 
+            foreach (MainTable row in MT)
             {
-                if (row.name == name) 
+                if (row.name == name)
                 {
                     isRedeclared = true;
                     break;
                 }
             }
 
-            if (!isRedeclared) 
+            if (!isRedeclared)
             {
                 MainTable tableRow = new MainTable();
 
@@ -118,7 +118,7 @@ namespace CShiftCompiler
             else return false;
         }
 
-        public static string Lookup_MT(string name, out string category) 
+        public static string Lookup_MT(string name, out string category)
         {
             foreach (MainTable row in MT)
             {
@@ -133,26 +133,188 @@ namespace CShiftCompiler
             return "";
         }
 
-        public static void createScope() 
+        public static void createScope()
         {
             scope.Push(++scopeValue);
         }
 
-        public static void destroyScope() 
+        public static void destroyScope()
         {
             scope.Pop();
         }
 
-        string GetType(string name) 
+        public static string typeCheck(string t1, string t2, string opr)
         {
-            foreach (MainTable row in MT)
+            string t3 = "";
+
+            if (opr == "+")
             {
-                if (row.name == name)
+                if (t1 == "string" && t2 == "string")
                 {
-                    return row.type;
+                    t3 = "string";
+                }
+                else if ((t1 == "string" && t2 == "int") || (t1 == "int" && t2 == "string"))
+                {
+                    t3 = "string";
+                }
+                else if ((t1 == "string" && t2 == "float") || (t1 == "float" && t2 == "string"))
+                {
+                    t3 = "string";
+                }
+                else if ((t1 == "string" && t2 == "char") || (t1 == "char" && t2 == "string"))
+                {
+                    t3 = "string";
+                }
+                else if ((t1 == "string" && t2 == "bool") || (t1 == "bool" && t2 == "string"))
+                {
+                    t3 = "string";
+                }
+                else if ((t1 == "float" && t2 == "int") || (t1 == "int" && t2 == "float"))
+                {
+                    t3 = "float";
+                }
+                else if ((t1 == "char" && t2 == "int") || (t1 == "int" && t2 == "char"))
+                {
+                    t3 = "int";
+                }
+                else if ((t1 == "char" && t2 == "float") || (t1 == "float" && t2 == "char"))
+                {
+                    t3 = "float";
+                }
+                else if (t1 == "char" && t2 == "char")
+                {
+                    t3 = "int";
+                }
+                else if (t1 == "float" && t2 == "float")
+                {
+                    t3 = "float";
+                }
+                else if (t1 == "int" && t2 == "int")
+                {
+                    t3 = "int";
                 }
             }
-            return "";
+
+            else if (opr == "-" || opr == "*" || opr == "/" || opr == "%")
+            {
+                if ((t1 == "float" && t2 == "int") || (t1 == "int" && t2 == "float"))
+                {
+                    t3 = "float";
+                }
+                else if ((t1 == "char" && t2 == "int") || (t1 == "int" && t2 == "char"))
+                {
+                    t3 = "int";
+                }
+                else if ((t1 == "char" && t2 == "float") || (t1 == "float" && t2 == "char"))
+                {
+                    t3 = "float";
+                }
+                else if (t1 == "char" && t2 == "char")
+                {
+                    t3 = "int";
+                }
+                else if (t1 == "float" && t2 == "float")
+                {
+                    t3 = "float";
+                }
+                else if (t1 == "int" && t2 == "int")
+                {
+                    t3 = "int";
+                }
+            }
+
+            else if (opr == "==" || opr == "!=")
+            {
+                if (t1 == "string" && t2 == "string")
+                {
+                    t3 = "bool";
+                }
+                else if (t1 == "int" && t2 == "int")
+                {
+                    t3 = "bool";
+                }
+                else if (t1 == "char" && t2 == "char")
+                {
+                    t3 = "bool";
+                }
+                else if (t1 == "float" && t2 == "float")
+                {
+                    t3 = "bool";
+                }
+                else if ((t1 == "int" && t2 == "float") || (t1 == "float" && t2 == "int"))
+                {
+                    t3 = "bool";
+                }
+                else if ((t1 == "int" && t2 == "char") || (t1 == "char" && t2 == "int"))
+                {
+                    t3 = "bool";
+                }
+                else if ((t1 == "char" && t2 == "float") || (t1 == "float" && t2 == "char"))
+                {
+                    t3 = "bool";
+                }
+            }
+
+            else if (opr == ">=" || opr == "<=" || opr == ">" || opr == "<")
+            {
+                if (t1 == "int" && t2 == "int")
+                {
+                    t3 = "bool";
+                }
+                else if (t1 == "char" && t2 == "char")
+                {
+                    t3 = "bool";
+                }
+                else if (t1 == "float" && t2 == "float")
+                {
+                    t3 = "bool";
+                }
+                else if ((t1 == "int" && t2 == "float") || (t1 == "float" && t2 == "int"))
+                {
+                    t3 = "bool";
+                }
+                else if ((t1 == "int" && t2 == "char") || (t1 == "char" && t2 == "int"))
+                {
+                    t3 = "bool";
+                }
+                else if ((t1 == "char" && t2 == "float") || (t1 == "float" && t2 == "char"))
+                {
+                    t3 = "bool";
+                }
+            }
+
+            else if (opr == "||" || opr == "&&")
+            {
+                if (t1 == "bool" && t2 == "bool")
+                {
+                    t3 = "bool";
+                }
+            }
+
+            return t3;
+        }
+
+        public static string typeCheck(string t1, string opr)
+        {
+            string t2 = "";
+
+            if (opr == "++" || opr == "--")
+            {
+                if (t1 == "char" || t1 == "int" || t1 == "float")
+                {
+                    t2 = t1;
+                }
+            }
+
+            else if (opr == "!")
+            {
+                if (t1 == "bool")
+                {
+                    t2 = t1;
+                }
+            }
+
+            return t2;
         }
     }
 
