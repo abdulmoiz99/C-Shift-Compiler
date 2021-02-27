@@ -50,17 +50,20 @@ namespace CShiftCompiler
 
             foreach (DataTable row in link)
             {
-                if (row.name == name && (!row.type.Contains("->")))
+                if (row.name == name)
                 {
-                    isRedeclared = true;
-                    break;
-                }
-                else if (row.name == name && row.type.Contains("->")) 
-                {
-                    string rowParameters = row.type.Substring(0, row.type.IndexOf("->"));
-                    string Parameters = type.Substring(0, type.IndexOf("->"));
+                    if (row.type.Contains("->") && type.Contains("->"))
+                    {
+                        string rowParameters = row.type.Substring(0, row.type.IndexOf("->"));
+                        string Parameters = type.Substring(0, type.IndexOf("->"));
 
-                    if (rowParameters == Parameters) 
+                        if (rowParameters == Parameters)
+                        {
+                            isRedeclared = true;
+                            break;
+                        }
+                    }
+                    else
                     {
                         isRedeclared = true;
                         break;
