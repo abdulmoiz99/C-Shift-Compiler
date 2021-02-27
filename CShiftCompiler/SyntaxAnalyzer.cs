@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace CShiftCompiler
 {
     class SyntaxAnalyzer
-    {  
+    {
         static int index = 0;
         List<Token> tokens;
 
@@ -131,7 +131,7 @@ namespace CShiftCompiler
 
                                 if (!SemanticAnalyzer.Insert_MT(name, type, category, parent, refDT))
                                 {
-                                    SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of class '" + name + "'!");
+                                    SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of class '" + name + "' at line # " + tokens[index].GetLineNo());
                                 }
 
                                 if (tokens[index].GetClass() == "{") 
@@ -435,7 +435,9 @@ namespace CShiftCompiler
             else if (tokens[index].GetClass() == "int-constant" || tokens[index].GetClass() == "float-constant" || tokens[index].GetClass() == "char-constant" ||
                      tokens[index].GetClass() == "string-constant" || tokens[index].GetClass() == "bool-constant")
             {
-                if (constant())
+                string T1 = "";
+
+                if (constant(ref T1))
                 {
                     return true;
                 }
@@ -564,30 +566,35 @@ namespace CShiftCompiler
             return false;
         }
 
-        private bool constant() 
+        private bool constant(ref string type) 
         {
             if (tokens[index].GetClass() == "int-constant") 
             {
+                type = "int";
                 index++;
                 return true;
             }
             else if (tokens[index].GetClass() == "float-constant")
             {
+                type = "float";
                 index++;
                 return true;
             }
             else if (tokens[index].GetClass() == "char-constant")
             {
+                type = "char";
                 index++;
                 return true;
             }
             else if (tokens[index].GetClass() == "string-constant")
             {
+                type = "string";
                 index++;
                 return true;
             }
             else if (tokens[index].GetClass() == "bool-constant")
             {
+                type = "bool";
                 index++;
                 return true;
             }
@@ -975,7 +982,7 @@ namespace CShiftCompiler
 
                         if (!SemanticAnalyzer.Insert_FT(name, T)) 
                         {
-                            SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "'!");
+                            SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "' at line # " + tokens[index].GetLineNo());
                         }
 
                         if (initialization())
@@ -1108,13 +1115,13 @@ namespace CShiftCompiler
                     {
                         if (!SemanticAnalyzer.Insert_DT(name, type, typeModifier, link))
                         {
-                            SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "'!");
+                            SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "' at line # " + tokens[index].GetLineNo());
                         }
                     }
 
                     else if (!SemanticAnalyzer.Insert_FT(name, type))
                     {
-                        SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "'!");
+                        SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "' at line # " + tokens[index].GetLineNo());
                     }
 
                     if (initialization()) 
@@ -1154,7 +1161,7 @@ namespace CShiftCompiler
 
                             if (!SemanticAnalyzer.Insert_FT(name, type))
                             {
-                                SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "'!");
+                                SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "' at line # " + tokens[index].GetLineNo());
                             }
 
                             if (tokens[index].GetClass() == "in") 
@@ -1503,7 +1510,7 @@ namespace CShiftCompiler
 
                                 if (!SemanticAnalyzer.Insert_FT(name, type))
                                 {
-                                    SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "'!");
+                                    SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "' at line # " + tokens[index].GetLineNo());
                                 }
 
                                 if (tokens[index].GetClass() == "{") 
@@ -1735,13 +1742,13 @@ namespace CShiftCompiler
                     {
                         if (!SemanticAnalyzer.Insert_DT(name, type, typeModifier, link))
                         {
-                            SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "'!");
+                            SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "' at line # " + tokens[index].GetLineNo());
                         }
                     }
 
                     else if (!SemanticAnalyzer.Insert_FT(name, "const " + type))
                     {
-                        SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "'!");
+                        SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "' at line # " + tokens[index].GetLineNo());
                     }
 
                     if (const_initialization()) 
@@ -1844,26 +1851,16 @@ namespace CShiftCompiler
 
                 if (!SemanticAnalyzer.Insert_FT(name, type))
                 {
-                    SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "'!");
+                    SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "' at line # " + tokens[index].GetLineNo());
                 }
 
-                if (tokens[index].GetClass() == "=")
+                if (constructor_choice())
                 {
-                    index++;
-
-                    if (tokens[index].GetClass() == "new")
+                    if (tokens[index].GetClass() == ";")
                     {
                         index++;
 
-                        if (constructor())
-                        {
-                            if (tokens[index].GetClass() == ";")
-                            {
-                                index++;
-
-                                return true;
-                            }
-                        }
+                        return true;
                     }
                 }
             }
@@ -1872,7 +1869,7 @@ namespace CShiftCompiler
             {
                 index++;
 
-                if (OE()) 
+                if (init()) 
                 {
                     if (tokens[index].GetClass() == ";") 
                     {
@@ -1888,6 +1885,34 @@ namespace CShiftCompiler
                 index++;
 
                 if (SST())
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool constructor_choice()
+        {
+            if (tokens[index].GetClass() == "=")
+            {
+                index++;
+
+                if (tokens[index].GetClass() == "new")
+                {
+                    index++;
+
+                    if (constructor())
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            else 
+            {
+                if (tokens[index].GetClass() == ";") 
                 {
                     return true;
                 }
@@ -1947,7 +1972,7 @@ namespace CShiftCompiler
 
                     if (!SemanticAnalyzer.Insert_FT(name, type))
                     {
-                        SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "'!");
+                        SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "' at line # " + tokens[index].GetLineNo());
                     }
 
                     if (tokens[index].GetClass() == "=")
@@ -1983,7 +2008,7 @@ namespace CShiftCompiler
 
                     if (!SemanticAnalyzer.Insert_FT(name, type))
                     {
-                        SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "'!");
+                        SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "' at line # " + tokens[index].GetLineNo());
                     }
 
                     if (initialization())
@@ -2044,7 +2069,7 @@ namespace CShiftCompiler
                 {
                     if (!SemanticAnalyzer.Insert_FT(name, "const " + type))
                     {
-                        SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "'!");
+                        SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "' at line # " + tokens[index].GetLineNo());
                     }
 
                     return true;
@@ -2126,7 +2151,7 @@ namespace CShiftCompiler
 
                     if (!SemanticAnalyzer.Insert_FT(name, type))
                     {
-                        SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "'!");
+                        SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "' at line # " + tokens[index].GetLineNo());
                     }
 
                     if (tokens[index].GetClass() == "=")
@@ -2162,7 +2187,7 @@ namespace CShiftCompiler
 
                     if (!SemanticAnalyzer.Insert_FT(name, type))
                     {
-                        SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "'!");
+                        SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "' at line # " + tokens[index].GetLineNo());
                     }
 
                     if (initialization())
@@ -2223,7 +2248,7 @@ namespace CShiftCompiler
                 {
                     if (!SemanticAnalyzer.Insert_FT(name, "const " + type))
                     {
-                        SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "'!");
+                        SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "' at line # " + tokens[index].GetLineNo());
                     }
 
                     return true;
@@ -2287,7 +2312,7 @@ namespace CShiftCompiler
 
                     if (!SemanticAnalyzer.Insert_MT(name, type, category, parent, refDT))
                     {
-                        SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of struct '" + name + "'!");
+                        SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of struct '" + name + "' at line # " + tokens[index].GetLineNo());
                     }
 
                     if (struct_body(ref refDT))
@@ -2335,7 +2360,7 @@ namespace CShiftCompiler
                 {
                     if (!SemanticAnalyzer.Insert_DT(name, type, typeModifier, link))
                     {
-                        SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "'!");
+                        SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "' at line # " + tokens[index].GetLineNo());
                     }
 
                     if (struct_content(ref link))
@@ -2573,7 +2598,7 @@ namespace CShiftCompiler
 
                             if (!SemanticAnalyzer.Insert_FT(name, parameters)) 
                             {
-                                SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "'!");
+                                SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "' at line # " + tokens[index].GetLineNo());
                             }
 
                             if (PL_def2(ref parameters))
@@ -2622,7 +2647,7 @@ namespace CShiftCompiler
 
                             if (!SemanticAnalyzer.Insert_FT(name, param[param.Length - 1]))
                             {
-                                SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "'!");
+                                SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "' at line # " + tokens[index].GetLineNo());
                             }
 
                             if (PL_def2(ref parameters))
@@ -2714,7 +2739,7 @@ namespace CShiftCompiler
 
                         if (!SemanticAnalyzer.Insert_MT(name, type, category, parent, refDT))
                         {
-                            SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of interface '" + name + "'!");
+                            SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of interface '" + name + "' at line # " + tokens[index].GetLineNo());
                         }
 
                         if (tokens[index].GetClass() == "{") 
@@ -2760,17 +2785,17 @@ namespace CShiftCompiler
 
                     if (type == String.Empty) 
                     {
-                        SemanticAnalyzer.errors.Add("Semantic Error: Undeclared Identifier '" + name + "'!");
+                        SemanticAnalyzer.errors.Add("Semantic Error: Undeclared Identifier '" + name + "' at line # " + tokens[index].GetLineNo());
                     }
 
                     if (type == "struct") 
                     {
-                        SemanticAnalyzer.errors.Add("Semantic Error: Class cannot be inherited from struct!");
+                        SemanticAnalyzer.errors.Add("Semantic Error: Class cannot be inherited from struct at line # " + tokens[index].GetLineNo());
                     }
 
                     if (type == "class" && category == "final") 
                     {
-                        SemanticAnalyzer.errors.Add("Semantic Error: Final class cannot be inherited!");
+                        SemanticAnalyzer.errors.Add("Semantic Error: Final class cannot be inherited at line # " + tokens[index].GetLineNo());
                     }
 
                     parent = name;
@@ -2811,7 +2836,7 @@ namespace CShiftCompiler
 
                     if (type == String.Empty)
                     {
-                        SemanticAnalyzer.errors.Add("Semantic Error: Undeclared Identifier '" + name + "'!");
+                        SemanticAnalyzer.errors.Add("Semantic Error: Undeclared Identifier '" + name + "' at line # " + tokens[index].GetLineNo());
                     }
 
                     if (type == "struct")
@@ -2821,7 +2846,7 @@ namespace CShiftCompiler
 
                     if (type == "class")
                     {
-                        SemanticAnalyzer.errors.Add("Semantic Error: Class must come first before any interface / Multiple classes cannot be inherited!");
+                        SemanticAnalyzer.errors.Add("Semantic Error: Class must come first before any interface / Multiple classes cannot be inherited at line # " + tokens[index].GetLineNo());
                     }
 
                     parent = name;
@@ -2875,7 +2900,7 @@ namespace CShiftCompiler
 
                                         if (!SemanticAnalyzer.Insert_DT(name, type, typeModifier, link))
                                         {
-                                            SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "'!");
+                                            SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "' at line # " + tokens[index].GetLineNo());
                                         }
 
                                         if (tokens[index].GetClass() == ";")
@@ -3009,7 +3034,7 @@ namespace CShiftCompiler
 
                                 if (!SemanticAnalyzer.Insert_MT(name, type, category, parent, refDT)) 
                                 {
-                                    SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of class '" + name + "'!");
+                                    SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of class '" + name + "' at line # " + tokens[index].GetLineNo());
                                 }
 
                                 if (tokens[index].GetClass() == "{") 
@@ -3121,7 +3146,7 @@ namespace CShiftCompiler
 
                                     if (!SemanticAnalyzer.Insert_DT(name, type, typeModifier, link)) 
                                     {
-                                        SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "'!");
+                                        SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "' at line # " + tokens[index].GetLineNo());
                                     }
 
                                     if (tokens[index].GetClass() == ";")
@@ -3173,7 +3198,7 @@ namespace CShiftCompiler
 
                         if (!SemanticAnalyzer.Insert_MT(name, type, category, parent, refDT))
                         {
-                            SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of class '" + name + "'!");
+                            SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of class '" + name + "' at line # " + tokens[index].GetLineNo());
                         }
 
                         if (tokens[index].GetClass() == "{")
@@ -3210,7 +3235,7 @@ namespace CShiftCompiler
                 {
                     if (!SemanticAnalyzer.Insert_DT(name, type, typeModifier, link))
                     {
-                        SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "'!");
+                        SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "' at line # " + tokens[index].GetLineNo());
                     }
 
                     if (class_body(ref link))
@@ -3260,7 +3285,7 @@ namespace CShiftCompiler
                     {
                         if (!SemanticAnalyzer.Insert_DT(name, returnType, typeModifier, refDT)) 
                         {
-                            SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "'!");
+                            SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "' at line # " + tokens[index].GetLineNo());
                         }
 
                         if (class_body(ref refDT))
@@ -3295,7 +3320,7 @@ namespace CShiftCompiler
                             {
                                 if (!SemanticAnalyzer.Insert_DT(name, returnType, typeModifier, refDT))
                                 {
-                                    SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "'!");
+                                    SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "' at line # " + tokens[index].GetLineNo());
                                 }
 
                                 index++;
