@@ -119,7 +119,7 @@ namespace CShiftCompiler
 
                         if (tokens[index].GetClass() == "ID") 
                         {
-                            string name = tokens[index].GetValue();
+                            string name = SemanticAnalyzer.currentClass = tokens[index].GetValue();
 
                             index++;
 
@@ -211,10 +211,15 @@ namespace CShiftCompiler
                 tokens[index].GetClass() == "char-constant" || tokens[index].GetClass() == "string-constant" || tokens[index].GetClass() == "bool-constant" ||
                 tokens[index].GetClass() == "(" || tokens[index].GetClass() == "!" || tokens[index].GetClass() == "Inc-Dec") 
             {
-                if (AE()) 
+                string T1 = "";
+                string T2 = "";
+
+                if (AE(ref T1)) 
                 {
-                    if (OEd())
+                    if (OEd(T1, ref T2))
                     {
+                        if (T2 == "") T2 = T1;
+
                         return true;
                     }
                 }
@@ -222,15 +227,28 @@ namespace CShiftCompiler
             return false;
         }
 
-        private bool OEd()
+        private bool OEd(string T1, ref string T3)
         {
             if (tokens[index].GetClass() == "OR")
             {
+                string opr = tokens[index].GetValue();
+
                 index++;
 
-                if (AE())
+                string T2 = "";
+
+                if (AE(ref T2))
                 {
-                    if (OEd())
+                    T3 = SemanticAnalyzer.typeCheck(T1, T2, opr);
+
+                    if (T3 == String.Empty)
+                    {
+                        SemanticAnalyzer.errors.Add("The operator " + opr + " is incompatible b/w " + T1 + " and " + T2 + " at line # " + tokens[index].GetLineNo());
+                    }
+
+                    string T4 = "";
+
+                    if (OEd(T3, ref T4))
                     {
                         return true;
                     }
@@ -248,16 +266,20 @@ namespace CShiftCompiler
             return false;
         }
 
-        private bool AE()
+        private bool AE(ref string T2)
         {
             if (tokens[index].GetClass() == "ID" || tokens[index].GetClass() == "int-constant" || tokens[index].GetClass() == "float-constant" ||
                 tokens[index].GetClass() == "char-constant" || tokens[index].GetClass() == "string-constant" || tokens[index].GetClass() == "bool-constant" ||
                 tokens[index].GetClass() == "(" || tokens[index].GetClass() == "!" || tokens[index].GetClass() == "Inc-Dec")
             {
-                if (RE())
+                string T1 = "";
+
+                if (RE(ref T1))
                 {
-                    if (AEd())
+                    if (AEd(T1, ref T2))
                     {
+                        if (T2 == "") T2 = T1;
+
                         return true;
                     }
                 }
@@ -265,15 +287,28 @@ namespace CShiftCompiler
             return false;
         }
 
-        private bool AEd() 
+        private bool AEd(string T1, ref string T3) 
         {
             if (tokens[index].GetClass() == "AND")
             {
+                string opr = tokens[index].GetValue();
+
                 index++;
 
-                if (RE())
+                string T2 = "";
+
+                if (RE(ref T2))
                 {
-                    if (AEd())
+                    T3 = SemanticAnalyzer.typeCheck(T1, T2, opr);
+
+                    if (T3 == String.Empty)
+                    {
+                        SemanticAnalyzer.errors.Add("The operator " + opr + " is incompatible b/w " + T1 + " and " + T2 + " at line # " + tokens[index].GetLineNo());
+                    }
+
+                    string T4 = "";
+
+                    if (AEd(T3, ref T4))
                     {
                         return true;
                     }
@@ -291,16 +326,20 @@ namespace CShiftCompiler
             return false;
         }
 
-        private bool RE() 
+        private bool RE(ref string T2) 
         {
             if (tokens[index].GetClass() == "ID" || tokens[index].GetClass() == "int-constant" || tokens[index].GetClass() == "float-constant" ||
                 tokens[index].GetClass() == "char-constant" || tokens[index].GetClass() == "string-constant" || tokens[index].GetClass() == "bool-constant" ||
                 tokens[index].GetClass() == "(" || tokens[index].GetClass() == "!" || tokens[index].GetClass() == "Inc-Dec")
             {
-                if (E())
+                string T1 = "";
+
+                if (E(ref T1))
                 {
-                    if (REd())
+                    if (REd(T1, ref T2))
                     {
+                        if (T2 == "") T2 = T1;
+
                         return true;
                     }
                 }
@@ -308,15 +347,28 @@ namespace CShiftCompiler
             return false;
         }
 
-        private bool REd()
+        private bool REd(string T1, ref string T3)
         {
             if (tokens[index].GetClass() == "Relational")
             {
+                string opr = tokens[index].GetValue();
+
                 index++;
 
-                if (E())
+                string T2 = "";
+
+                if (E(ref T2))
                 {
-                    if (REd())
+                    T3 = SemanticAnalyzer.typeCheck(T1, T2, opr);
+
+                    if (T3 == String.Empty)
+                    {
+                        SemanticAnalyzer.errors.Add("The operator " + opr + " is incompatible b/w " + T1 + " and " + T2 + " at line # " + tokens[index].GetLineNo());
+                    }
+
+                    string T4 = "";
+
+                    if (REd(T3, ref T4))
                     {
                         return true;
                     }
@@ -334,16 +386,20 @@ namespace CShiftCompiler
             return false;
         }
 
-        private bool E() 
+        private bool E(ref string T2) 
         {
             if (tokens[index].GetClass() == "ID" || tokens[index].GetClass() == "int-constant" || tokens[index].GetClass() == "float-constant" ||
                 tokens[index].GetClass() == "char-constant" || tokens[index].GetClass() == "string-constant" || tokens[index].GetClass() == "bool-constant" ||
                 tokens[index].GetClass() == "(" || tokens[index].GetClass() == "!" || tokens[index].GetClass() == "Inc-Dec")
             {
-                if (T())
+                string T1 = "";
+
+                if (T(ref T1))
                 {
-                    if (Ed())
+                    if (Ed(T1, ref T2))
                     {
+                        if (T2 == "") T2 = T1;
+
                         return true;
                     }
                 }
@@ -351,15 +407,28 @@ namespace CShiftCompiler
             return false;
         }
 
-        private bool Ed() 
+        private bool Ed(string T1, ref string T3) 
         {
             if (tokens[index].GetClass() == "PM")
             {
+                string opr = tokens[index].GetValue();        
+
                 index++;
 
-                if (T())
+                string T2 = "";
+
+                if (T(ref T2))
                 {
-                    if (Ed())
+                    T3 = SemanticAnalyzer.typeCheck(T1, T2, opr);
+
+                    if (T3 == String.Empty)
+                    {
+                        SemanticAnalyzer.errors.Add("The operator " + opr + " is incompatible b/w " + T1 + " and " + T2 + " at line # " + tokens[index].GetLineNo());
+                    }
+
+                    string T4 = "";
+
+                    if (Ed(T3, ref T4))
                     {
                         return true;
                     }
@@ -377,16 +446,20 @@ namespace CShiftCompiler
             return false;
         }
 
-        private bool T() 
+        private bool T(ref string T2) 
         {
             if (tokens[index].GetClass() == "ID" || tokens[index].GetClass() == "int-constant" || tokens[index].GetClass() == "float-constant" ||
                 tokens[index].GetClass() == "char-constant" || tokens[index].GetClass() == "string-constant" || tokens[index].GetClass() == "bool-constant" ||
                 tokens[index].GetClass() == "(" || tokens[index].GetClass() == "!" || tokens[index].GetClass() == "Inc-Dec")
             {
-                if (F())
+                string T1 = "";
+
+                if (F(ref T1))
                 {
-                    if (Td())
+                    if (Td(T1, ref T2))
                     {
+                        if (T2 == "") T2 = T1;
+
                         return true;
                     }
                 }
@@ -394,15 +467,28 @@ namespace CShiftCompiler
             return false;
         }
 
-        private bool Td() 
+        private bool Td(string T1, ref string T3) 
         {
             if (tokens[index].GetClass() == "MDM")
             {
+                string opr = tokens[index].GetValue();
+
                 index++;
 
-                if (F())
+                string T2 = "";
+
+                if (F(ref T2))
                 {
-                    if (Td())
+                    T3 = SemanticAnalyzer.typeCheck(T1, T2, opr);
+
+                    if (T3 == String.Empty)
+                    {
+                        SemanticAnalyzer.errors.Add("The operator " + opr + " is incompatible b/w " + T1 + " and " + T2 + " at line # " + tokens[index].GetLineNo());
+                    }
+
+                    string T4 = "";
+
+                    if (Td(T3, ref T4))
                     {
                         return true;
                     }
@@ -421,11 +507,20 @@ namespace CShiftCompiler
             return false;
         }
 
-        private bool F() 
+        private bool F(ref string T1) //Semantics done only for single variables and constants.
         {
             if (tokens[index].GetClass() == "ID")
             {
+                string N = tokens[index].GetValue(); 
+
                 index++;
+
+                T1 = SemanticAnalyzer.Lookup_FT(N);
+
+                if (T1 == String.Empty) 
+                {
+                    SemanticAnalyzer.errors.Add("Undeclared identifier '" + N + "' at line # " + tokens[index].GetLineNo());
+                }
 
                 if (G())
                 {
@@ -435,7 +530,6 @@ namespace CShiftCompiler
             else if (tokens[index].GetClass() == "int-constant" || tokens[index].GetClass() == "float-constant" || tokens[index].GetClass() == "char-constant" ||
                      tokens[index].GetClass() == "string-constant" || tokens[index].GetClass() == "bool-constant")
             {
-                string T1 = "";
 
                 if (constant(ref T1))
                 {
@@ -459,8 +553,15 @@ namespace CShiftCompiler
             {
                 index++;
 
-                if (F())
+                if (F(ref T1))
                 {
+                    //T1 = SemanticAnalyzer.typeCheck(T1, "!");
+
+                    //if (T1 == String.Empty) 
+                    //{
+                    //    SemanticAnalyzer.errors.Add("The operator ! is incompatible with type " + T1 + " at line #" + tokens[index].GetLineNo());
+                    //}
+
                     return true;
                 }
             }
@@ -2302,7 +2403,7 @@ namespace CShiftCompiler
 
                 if (tokens[index].GetClass() == "ID") 
                 {
-                    string name = tokens[index].GetValue();
+                    string name = SemanticAnalyzer.currentClass = tokens[index].GetValue();
 
                     index++;
 
@@ -2727,7 +2828,7 @@ namespace CShiftCompiler
 
                 if (tokens[index].GetClass() == "ID") 
                 {
-                    string name = tokens[index].GetValue();
+                    string name = SemanticAnalyzer.currentClass = tokens[index].GetValue();
 
                     index++;
 
@@ -3022,7 +3123,7 @@ namespace CShiftCompiler
 
                         if (tokens[index].GetClass() == "ID") 
                         {
-                            string name = tokens[index].GetValue();
+                            string name = SemanticAnalyzer.currentClass = tokens[index].GetValue();
 
                             index++;
 
@@ -3186,7 +3287,7 @@ namespace CShiftCompiler
 
                 if (tokens[index].GetClass() == "ID")
                 {
-                    string name = tokens[index].GetValue();
+                    string name = SemanticAnalyzer.currentClass = tokens[index].GetValue();
 
                     index++;
 

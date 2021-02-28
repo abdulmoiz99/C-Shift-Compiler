@@ -10,6 +10,7 @@ namespace CShiftCompiler
         static Stack<int> scope = new Stack<int>();
         static int scopeValue = 0;
         public static List<string> errors = new List<string>();
+        public static string currentClass;
 
         public static List<DataTable> Create_DT()
         {
@@ -131,6 +132,48 @@ namespace CShiftCompiler
 
             category = "";
             return "";
+        }
+
+        public static string Lookup_FT(string name) 
+        {
+            string type = String.Empty;
+
+            foreach (int item in scope) 
+            {
+                foreach (FunctionTable row in FT) 
+                {
+                    if (item == row.scope && name == row.name) 
+                    {
+                        type = row.type;
+                    }
+                }
+            }
+
+            if (type == String.Empty) 
+            {
+                foreach (DataTable row in GetCurrentClassTable()) 
+                {
+                    if (row.name == name && (!row.type.Contains("->"))) 
+                    {
+                        type = row.type;
+                    }
+                }
+            }
+
+            return type;
+        }
+
+        private static List<DataTable> GetCurrentClassTable() 
+        {
+            foreach (MainTable row in MT) 
+            {
+                if (row.name == currentClass) 
+                {
+                    return row.link;
+                }
+            }
+
+            return null;
         }
 
         public static void createScope()
