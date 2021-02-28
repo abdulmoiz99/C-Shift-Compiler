@@ -2773,6 +2773,8 @@ namespace CShiftCompiler
 
                 if (OE(ref type)) 
                 {
+                    if (type.Contains("const")) type = type.Replace("const ", "");
+
                     if (T != type)
                     {
                         SemanticAnalyzer.errors.Add("Incompatible return type b/w " + type + " and " + T + " at line # " + tokens[index].GetLineNo());
