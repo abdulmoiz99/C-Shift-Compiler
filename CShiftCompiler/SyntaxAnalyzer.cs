@@ -205,14 +205,13 @@ namespace CShiftCompiler
             return false;
         }
 
-        private bool OE() 
+        private bool OE(ref string T2) 
         {
             if (tokens[index].GetClass() == "ID" || tokens[index].GetClass() == "int-constant" || tokens[index].GetClass() == "float-constant" ||
                 tokens[index].GetClass() == "char-constant" || tokens[index].GetClass() == "string-constant" || tokens[index].GetClass() == "bool-constant" ||
                 tokens[index].GetClass() == "(" || tokens[index].GetClass() == "!" || tokens[index].GetClass() == "Inc-Dec") 
             {
                 string T1 = "";
-                string T2 = "";
 
                 if (AE(ref T1)) 
                 {
@@ -540,7 +539,9 @@ namespace CShiftCompiler
             {
                 index++;
 
-                if (OE())
+                string type = "";
+
+                if (OE(ref type))
                 {
                     if (tokens[index].GetClass() == ")")
                     {
@@ -567,14 +568,32 @@ namespace CShiftCompiler
             }
             else if (tokens[index].GetClass() == "Inc-Dec") 
             {
+                string opr = tokens[index].GetValue();
+
                 index++;
 
                 if (tokens[index].GetClass() == "ID") 
                 {
+                    string N = tokens[index].GetValue();
+
+                    T1 = SemanticAnalyzer.Lookup_FT(N);
+
+                    if (T1 == String.Empty)
+                    {
+                        SemanticAnalyzer.errors.Add("Undeclared identifier '" + N + "' at line # " + tokens[index].GetLineNo());
+                    }
+
                     index++;
 
                     if (X()) 
                     {
+                        string T2 = SemanticAnalyzer.typeCheck(T1, opr);
+
+                        if (T2 == String.Empty) 
+                        {
+                            SemanticAnalyzer.errors.Add("The operator " + opr + " is incompatible with " + T1 + " type variable at line # " + tokens[index].GetLineNo());
+                        }
+
                         return true;
                     }
                 }
@@ -813,7 +832,7 @@ namespace CShiftCompiler
             return false;
         }
 
-        private bool asgn_value() 
+        private bool asgn_value(string T = "") 
         {
             if (tokens[index].GetClass() == "new")
             {
@@ -829,9 +848,16 @@ namespace CShiftCompiler
                 tokens[index].GetClass() == "char-constant" || tokens[index].GetClass() == "string-constant" || tokens[index].GetClass() == "bool-constant" ||
                 tokens[index].GetClass() == "(" || tokens[index].GetClass() == "!" || tokens[index].GetClass() == "Inc-Dec")
                  {
-                    if (OE())
+                    string type = "";
+
+                    if (OE(ref type))
                     {
-                        return true;
+                        if (T != type && T != "var")
+                        {
+                            SemanticAnalyzer.errors.Add("Incompatible assignment b/w " + type + " and " + T + " at line # " + tokens[index].GetLineNo());
+                        }
+
+                    return true;
                     }
                  }
 
@@ -959,8 +985,14 @@ namespace CShiftCompiler
                 tokens[index].GetClass() == "char-constant" || tokens[index].GetClass() == "string-constant" || tokens[index].GetClass() == "bool-constant" ||
                 tokens[index].GetClass() == "(" || tokens[index].GetClass() == "!" || tokens[index].GetClass() == "Inc-Dec")
             {
-                if (OE())
+                string type = "";
+                if (OE(ref type))
                 {
+                    if (type != "bool")
+                    {
+                        SemanticAnalyzer.errors.Add("Incompatible type b/w " + type + " and bool at line # " + tokens[index].GetLineNo());
+                    }
+
                     return true;
                 }
             }
@@ -1086,7 +1118,7 @@ namespace CShiftCompiler
                             SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "' at line # " + tokens[index].GetLineNo());
                         }
 
-                        if (initialization())
+                        if (initialization(T))
                         {
                             if (list(T, "", null))
                             {
@@ -1170,13 +1202,13 @@ namespace CShiftCompiler
             return false;
         }
 
-        private bool initialization()
+        private bool initialization(string T)
         {
             if (tokens[index].GetClass() == "=")
             {
                 index++;
 
-                if (asgn_value()) 
+                if (asgn_value(T)) 
                 {
                     return true;
                 }
@@ -1225,7 +1257,7 @@ namespace CShiftCompiler
                         SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "' at line # " + tokens[index].GetLineNo());
                     }
 
-                    if (initialization()) 
+                    if (initialization(type)) 
                     {
                         if (list(type, typeModifier, link)) 
                         {
@@ -1342,8 +1374,15 @@ namespace CShiftCompiler
                 {
                     index++;
 
-                    if (OE()) 
+                    string type = "";
+
+                    if (OE(ref type)) 
                     {
+                        if (type != "bool")
+                        {
+                            SemanticAnalyzer.errors.Add("Incompatible type b/w " + type + " and bool at line # " + tokens[index].GetLineNo());
+                        }
+
                         if (tokens[index].GetClass() == ")") 
                         {
                             index++;
@@ -1383,8 +1422,15 @@ namespace CShiftCompiler
                 {
                     index++;
 
-                    if (OE()) 
+                    string type = "";
+
+                    if (OE(ref type)) 
                     {
+                        if (type != "bool")
+                        {
+                            SemanticAnalyzer.errors.Add("Incompatible type b/w " + type + " and bool at line # " + tokens[index].GetLineNo());
+                        }
+
                         if (tokens[index].GetClass() == ")") 
                         {
                             index++;
@@ -1428,8 +1474,15 @@ namespace CShiftCompiler
                 {
                     index++;
 
-                    if (OE())
+                    string type = "";
+
+                    if (OE(ref type))
                     {
+                        if (type != "bool")
+                        {
+                            SemanticAnalyzer.errors.Add("Incompatible type b/w " + type + " and bool at line # " + tokens[index].GetLineNo());
+                        }
+
                         if (tokens[index].GetClass() == ")")
                         {
                             index++;
@@ -1791,7 +1844,7 @@ namespace CShiftCompiler
 
                         index++;
 
-                        if (const_initialization()) 
+                        if (const_initialization(type)) 
                         {
                             if (const_list(type, typeModifier, link)) 
                             {
@@ -1805,14 +1858,21 @@ namespace CShiftCompiler
             return false;
         }
 
-        private bool const_initialization() 
+        private bool const_initialization(string T) 
         {
             if (tokens[index].GetClass() == "=") 
             {
                 index++;
 
-                if (OE()) 
+                string type = "";
+
+                if (OE(ref type)) 
                 {
+                    if (T != type)
+                    {
+                        SemanticAnalyzer.errors.Add("Incompatible assignment b/w " + type + " and " + T + " at line # " + tokens[index].GetLineNo());
+                    }
+
                     return true;
                 }
             }
@@ -1852,7 +1912,7 @@ namespace CShiftCompiler
                         SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "' at line # " + tokens[index].GetLineNo());
                     }
 
-                    if (const_initialization()) 
+                    if (const_initialization(type)) 
                     {
                         if (const_list(type, typeModifier, link)) 
                         {
@@ -1865,14 +1925,21 @@ namespace CShiftCompiler
             return false;
         }
 
-        private bool init() 
+        private bool init(string T) 
         {
             if (tokens[index].GetClass() == "ID" || tokens[index].GetClass() == "int-constant" || tokens[index].GetClass() == "float-constant" ||
                 tokens[index].GetClass() == "char-constant" || tokens[index].GetClass() == "string-constant" || tokens[index].GetClass() == "bool-constant" ||
                 tokens[index].GetClass() == "(" || tokens[index].GetClass() == "!" || tokens[index].GetClass() == "Inc-Dec") 
             {
-                if (OE()) 
+                string type = "";
+
+                if (OE(ref type)) 
                 {
+                    if (T != type && T != "var")
+                    {
+                        SemanticAnalyzer.errors.Add("Incompatible assignment b/w " + type + " and " + T + " at line # " + tokens[index].GetLineNo());
+                    }
+
                     return true;
                 }
             }
@@ -1927,7 +1994,16 @@ namespace CShiftCompiler
 
             else if (tokens[index].GetClass() == "Inc-Dec")
             {
+                string opr = tokens[index].GetValue();
+
                 index++;
+
+                string T2 = SemanticAnalyzer.typeCheck(type, opr);
+
+                if (T2 == String.Empty)
+                {
+                    SemanticAnalyzer.errors.Add("The operator " + opr + " is incompatible with " + type + " type variable at line # " + tokens[index].GetLineNo());
+                }
 
                 if (tokens[index].GetClass() == ";")
                 {
@@ -1970,7 +2046,7 @@ namespace CShiftCompiler
             {
                 index++;
 
-                if (init()) 
+                if (init(type)) 
                 {
                     if (tokens[index].GetClass() == ";") 
                     {
@@ -2082,7 +2158,7 @@ namespace CShiftCompiler
 
                         //Lookup
 
-                        if (init())
+                        if (init(type))
                         {
                             if (tokens[index].GetClass() == ";") 
                             {
@@ -2112,7 +2188,7 @@ namespace CShiftCompiler
                         SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "' at line # " + tokens[index].GetLineNo());
                     }
 
-                    if (initialization())
+                    if (initialization(type))
                     {
                         if (list(type, "", null))
                         {
@@ -2179,7 +2255,14 @@ namespace CShiftCompiler
 
             else if (tokens[index].GetClass() == "ID")
             {
-                string type = tokens[index].GetValue();
+                string N = tokens[index].GetValue();
+
+                string type = SemanticAnalyzer.Lookup_FT(N);
+
+                if (type == "") 
+                {
+                    SemanticAnalyzer.errors.Add("Semantic Error: Undeclared Identifier '" + N + "' at line # " + tokens[index].GetLineNo());
+                }
 
                 index++;
 
@@ -2199,10 +2282,28 @@ namespace CShiftCompiler
 
             else if (tokens[index].GetClass() == "Inc-Dec")
             {
+                string opr = tokens[index].GetValue();
+
                 index++;
 
                 if (tokens[index].GetClass() == "ID")
                 {
+                    string N = tokens[index].GetValue();
+
+                    string T1 = SemanticAnalyzer.Lookup_FT(N);
+
+                    if (T1 == String.Empty)
+                    {
+                        SemanticAnalyzer.errors.Add("Undeclared identifier '" + N + "' at line # " + tokens[index].GetLineNo());
+                    }
+
+                    string T2 = SemanticAnalyzer.typeCheck(T1, opr);
+
+                    if (T2 == String.Empty)
+                    {
+                        SemanticAnalyzer.errors.Add("The operator " + opr + " is incompatible with " + T1 + " type variable at line # " + tokens[index].GetLineNo());
+                    }
+
                     index++;
 
                     if (X())
@@ -2261,7 +2362,7 @@ namespace CShiftCompiler
 
                         //Lookup
 
-                        if (init())
+                        if (init(type))
                         {
                             if (tokens[index].GetClass() == ";")
                             {
@@ -2291,7 +2392,7 @@ namespace CShiftCompiler
                         SemanticAnalyzer.errors.Add("Semantic Error: Redeclaration of '" + name + "' at line # " + tokens[index].GetLineNo());
                     }
 
-                    if (initialization())
+                    if (initialization(type))
                     {
                         if (list(type, "", null))
                         {
@@ -2614,7 +2715,7 @@ namespace CShiftCompiler
         {
             if (tokens[index].GetClass() == "=" || tokens[index].GetClass() == "," || tokens[index].GetClass() == ";")
             {
-                if (initialization())
+                if (initialization(returnType))
                 {
                     if (list(returnType, typeModifier, link))
                     {
@@ -2641,7 +2742,7 @@ namespace CShiftCompiler
 
                             if (MST()) 
                             {
-                                if (return_statement()) 
+                                if (return_statement(returnType)) 
                                 {
                                     SemanticAnalyzer.destroyScope();
 
@@ -2661,14 +2762,22 @@ namespace CShiftCompiler
             return false;
         }
 
-        private bool return_statement()
+        private bool return_statement(string T)
         {
             if (tokens[index].GetClass() == "return") 
             {
                 index++;
 
-                if (OE()) 
+                string type = "";
+                T = T.Substring(T.IndexOf("->") + 2);
+
+                if (OE(ref type)) 
                 {
+                    if (T != type)
+                    {
+                        SemanticAnalyzer.errors.Add("Incompatible return type b/w " + type + " and " + T + " at line # " + tokens[index].GetLineNo());
+                    }
+
                     if (tokens[index].GetClass() == ";") 
                     {
                         index++;
